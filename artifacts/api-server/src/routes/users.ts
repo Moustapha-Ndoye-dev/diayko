@@ -6,6 +6,8 @@ import { z } from "zod";
 
 const router: IRouter = Router();
 
+const uuidSchema = z.string().uuid();
+
 router.post("/users", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
@@ -32,6 +34,11 @@ router.post("/users", async (req, res) => {
 });
 
 router.get("/users/:id", async (req, res) => {
+  if (!uuidSchema.safeParse(req.params.id).success) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
   const rows = await db
     .select()
     .from(usersTable)
@@ -47,6 +54,11 @@ router.get("/users/:id", async (req, res) => {
 });
 
 router.get("/users/:id/items", async (req, res) => {
+  if (!uuidSchema.safeParse(req.params.id).success) {
+    res.json({ items: [], total: 0, page: 1, limit: 20, hasMore: false });
+    return;
+  }
+
   const pageSchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
