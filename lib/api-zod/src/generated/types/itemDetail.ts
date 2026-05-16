@@ -5,7 +5,9 @@
  * Vinted clone API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { Item } from './item';
+import type { User } from './user';
 
-export interface HealthStatus {
-  status: string;
-}
+export type ItemDetail = Item & {
+  seller: User;
+};

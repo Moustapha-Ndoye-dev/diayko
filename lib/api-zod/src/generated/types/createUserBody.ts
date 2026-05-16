@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface CreateUserBody {
+  /** @minLength 2 */
+  name: string;
+  bio?: string | null;
 }
