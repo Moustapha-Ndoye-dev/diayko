@@ -27,7 +27,6 @@ const DEFAULT_STEPS = [
 ];
 
 const listQuery = z.object({
-  userId: z.string().uuid(),
   status: z.enum(orderStatus).optional(),
   role: z.enum(["buyer", "seller", "any"]).default("any"),
 });
@@ -35,7 +34,11 @@ const listQuery = z.object({
 router.get(
   "/orders",
   asyncHandler(async (req, res) => {
-    const { userId, status, role } = listQuery.parse(req.query);
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
+    const userId = req.user.id;
+    const { status, role } = listQuery.parse(req.query);
 
     const roleFilter =
       role === "buyer"
@@ -125,7 +128,6 @@ router.get(
 );
 
 const createBody = z.object({
-  buyerId: z.string().uuid(),
   itemId: z.string().uuid(),
   paymentMethod: z.enum(paymentMethods),
   carrier: z.enum(carriers).optional(),
@@ -134,7 +136,11 @@ const createBody = z.object({
 router.post(
   "/orders",
   asyncHandler(async (req, res) => {
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
     const data = createBody.parse(req.body);
+    const buyerId = req.user.id;
 
     const itemRows = await db
       .select()
@@ -143,7 +149,7 @@ router.post(
       .limit(1);
     const item = itemRows[0];
     if (!item) throw new HttpError(404, "Item not found");
-    if (item.sellerId === data.buyerId) {
+    if (item.sellerId === buyerId) {
       throw new HttpError(400, "Cannot buy your own item");
     }
 
@@ -154,7 +160,7 @@ router.post(
       const [created] = await tx
         .insert(ordersTable)
         .values({
-          buyerId: data.buyerId,
+          buyerId,
           sellerId: item.sellerId,
           itemId: item.id,
           totalPrice: item.price,

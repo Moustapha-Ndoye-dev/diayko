@@ -13,14 +13,11 @@ import { z } from "zod";
 const router: IRouter = Router();
 
 router.get("/conversations", async (req, res) => {
-  const querySchema = z.object({ userId: z.string().uuid() });
-  const parsed = querySchema.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
     return;
   }
-
-  const { userId } = parsed.data;
+  const userId = req.user.id;
 
   const rows = await db
     .select()
@@ -87,8 +84,12 @@ router.get("/conversations", async (req, res) => {
 });
 
 router.post("/conversations", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
   const bodySchema = z.object({
-    buyerId: z.string().uuid(),
     sellerId: z.string().uuid(),
     itemId: z.string().uuid().optional().nullable(),
     initialMessage: z.string().optional(),
@@ -100,7 +101,8 @@ router.post("/conversations", async (req, res) => {
     return;
   }
 
-  const { buyerId, sellerId, itemId, initialMessage } = parsed.data;
+  const { sellerId, itemId, initialMessage } = parsed.data;
+  const buyerId = req.user.id;
 
   const [conv] = await db
     .insert(conversationsTable)
@@ -115,7 +117,7 @@ router.post("/conversations", async (req, res) => {
 
   if (initialMessage) {
     await db.insert(messagesTable).values({
-      conversationId: conv.id,
+      conversationId: conv!.id,
       senderId: buyerId,
       text: initialMessage,
     });
@@ -131,6 +133,10 @@ router.post("/conversations", async (req, res) => {
 });
 
 router.get("/conversations/:id/messages", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
   const rows = await db
     .select()
     .from(messagesTable)
@@ -141,8 +147,12 @@ router.get("/conversations/:id/messages", async (req, res) => {
 });
 
 router.post("/conversations/:id/messages", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
   const bodySchema = z.object({
-    senderId: z.string().uuid(),
     text: z.string().min(1),
   });
 
@@ -152,7 +162,8 @@ router.post("/conversations/:id/messages", async (req, res) => {
     return;
   }
 
-  const { senderId, text } = parsed.data;
+  const { text } = parsed.data;
+  const senderId = req.user.id;
   const conversationId = req.params.id;
 
   const [msg] = await db

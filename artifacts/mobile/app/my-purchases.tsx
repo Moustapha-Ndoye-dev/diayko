@@ -59,7 +59,7 @@ export default function MyPurchasesScreen() {
   const load = useCallback(async () => {
     try {
       setError(null);
-      const res = await api.orders.list({ userId: currentUser.id, role: "buyer" });
+      const res = await api.orders.list({ role: "buyer" });
       setOrders(res.orders);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur de chargement");

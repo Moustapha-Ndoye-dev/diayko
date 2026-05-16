@@ -1,15 +1,33 @@
+import * as SecureStore from "expo-secure-store";
+
 const BASE =
   typeof __DEV__ !== "undefined" && __DEV__
     ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
     : `/api`;
+
+const AUTH_TOKEN_KEY = "auth_session_token";
+
+async function getAuthToken(): Promise<string | null> {
+  try {
+    return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
 
 async function request<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
   const url = `${BASE}${path}`;
+  const token = await getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers,
     ...options,
   });
   if (!res.ok) {
@@ -151,10 +169,9 @@ export const api = {
     delete: (id: string) => request<void>(`/items/${id}`, { method: "DELETE" }),
     view: (id: string) =>
       request<{ viewsCount: number }>(`/items/${id}/view`, { method: "POST" }),
-    like: (id: string, userId: string) =>
+    like: (id: string, _userId: string) =>
       request<{ liked: boolean; likesCount: number }>(`/items/${id}/like`, {
         method: "POST",
-        body: JSON.stringify({ userId }),
       }),
   },
   users: {
@@ -168,18 +185,17 @@ export const api = {
       const query = qs.toString();
       return request<ApiItemListResponse>(`/users/${id}/items${query ? `?${query}` : ""}`);
     },
-    favorites: (id: string) =>
-      request<{ items: ApiItem[]; ids: string[] }>(`/users/${id}/favorites`),
+    favorites: (_id: string) =>
+      request<{ items: ApiItem[]; ids: string[] }>(`/me/favorites`),
   },
   categories: {
     list: () =>
       request<{ id: string; label: string; icon: string }[]>("/categories"),
   },
   conversations: {
-    list: (userId: string) =>
-      request<ApiConversation[]>(`/conversations?userId=${userId}`),
+    list: (_userId?: string) =>
+      request<ApiConversation[]>(`/conversations`),
     create: (body: {
-      buyerId: string;
       sellerId: string;
       itemId?: string | null;
       initialMessage?: string;
@@ -190,22 +206,22 @@ export const api = {
       }),
     messages: (id: string) =>
       request<ApiMessage[]>(`/conversations/${id}/messages`),
-    send: (id: string, body: { senderId: string; text: string }) =>
+    send: (id: string, body: { text: string }) =>
       request<ApiMessage>(`/conversations/${id}/messages`, {
         method: "POST",
         body: JSON.stringify(body),
       }),
   },
   orders: {
-    list: (params: { userId: string; status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
-      const qs = new URLSearchParams({ userId: params.userId });
+    list: (params: { status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
+      const qs = new URLSearchParams();
       if (params.status) qs.set("status", params.status);
       if (params.role) qs.set("role", params.role);
-      return request<{ orders: ApiOrder[] }>(`/orders?${qs.toString()}`);
+      const q = qs.toString();
+      return request<{ orders: ApiOrder[] }>(`/orders${q ? `?${q}` : ""}`);
     },
     get: (id: string) => request<ApiOrderDetail>(`/orders/${id}`),
     create: (body: {
-      buyerId: string;
       itemId: string;
       paymentMethod: ApiPaymentMethod;
       carrier?: string;

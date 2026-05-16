@@ -10,6 +10,7 @@ import { api, ApiItem, ApiUser } from "@/lib/api";
 import { Item, Seller, Condition, Conversation, ConversationItem } from "@/types";
 import { ApiConversation } from "@/lib/api";
 import { storage, SellerStatus } from "@/lib/storage";
+import { useAuth } from "@/lib/auth";
 
 // ─── Adapters ─────────────────────────────────────────────────────────────────
 
@@ -125,12 +126,24 @@ const CURRENT_USER: Seller = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user: authUser } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [myListings, setMyListings] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sellerStatus, setSellerStatus] = useState<SellerStatus>("none");
+
+  const currentUser: Seller = authUser
+    ? {
+        ...CURRENT_USER,
+        id: authUser.id,
+        name:
+          [authUser.firstName, authUser.lastName].filter(Boolean).join(" ").trim() ||
+          authUser.email ||
+          "Utilisateur",
+      }
+    : CURRENT_USER;
 
   useEffect(() => {
     storage.sellerStatus.get().then(setSellerStatus);
@@ -167,13 +180,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshFavorites = useCallback(async () => {
+    if (!authUser) {
+      setFavorites(new Set());
+      return;
+    }
     try {
-      const res = await api.users.favorites(CURRENT_USER.id);
+      const res = await api.users.favorites(currentUser.id);
       setFavorites(new Set(res.ids));
     } catch {
       // Keep current favorites set on error.
     }
-  }, []);
+  }, [authUser, currentUser.id]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -200,7 +217,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : item,
         ),
       );
-      api.items.like(itemId, CURRENT_USER.id).catch(() => {
+      api.items.like(itemId, currentUser.id).catch(() => {
         // Revert on failure.
         refreshFavorites();
       });
@@ -229,7 +246,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toggleFavorite,
         addListing,
         isFavorite,
-        currentUser: CURRENT_USER,
+        currentUser,
         refreshItems,
         sellerStatus,
         requestSellerAccess,

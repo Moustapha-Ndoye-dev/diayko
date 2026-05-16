@@ -176,12 +176,13 @@ router.post(
   }),
 );
 
-const likeBodySchema = z.object({ userId: z.string().uuid() });
-
 router.post(
   "/items/:id/like",
   asyncHandler(async (req, res) => {
-    const { userId } = likeBodySchema.parse(req.body);
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
+    const userId = req.user.id;
     const { id: itemId } = idParamsSchema.parse(req.params);
 
     const existing = await db

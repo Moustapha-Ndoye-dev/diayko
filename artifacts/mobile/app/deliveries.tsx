@@ -49,8 +49,8 @@ export default function DeliveriesScreen() {
     try {
       setError(null);
       const [proc, inTransit] = await Promise.all([
-        api.orders.list({ userId: currentUser.id, role: "buyer", status: "processing" }),
-        api.orders.list({ userId: currentUser.id, role: "buyer", status: "in_transit" }),
+        api.orders.list({ role: "buyer", status: "processing" }),
+        api.orders.list({ role: "buyer", status: "in_transit" }),
       ]);
       const summaries = [...inTransit.orders, ...proc.orders];
       const details = await Promise.all(summaries.map((o) => api.orders.get(o.id)));

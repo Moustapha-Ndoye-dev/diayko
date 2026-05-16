@@ -2,17 +2,18 @@ import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { likesTable, itemsTable, itemImagesTable } from "@workspace/db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
-import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
+import { HttpError } from "../middlewares/errorHandler";
 
 const router: IRouter = Router();
 
-const userIdParams = z.object({ id: z.string().uuid() });
-
 router.get(
-  "/users/:id/favorites",
+  "/me/favorites",
   asyncHandler(async (req, res) => {
-    const { id } = userIdParams.parse(req.params);
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
+    const id = req.user.id;
 
     const rows = await db
       .select({ item: itemsTable })

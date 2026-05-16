@@ -178,7 +178,7 @@ export default function ConversationScreen() {
     }
 
     try {
-      const sent = await api.conversations.send(id, { senderId: currentUserId, text: censored });
+      const sent = await api.conversations.send(id, { text: censored });
       setMessagesState((prev) =>
         prev.status === "success"
           ? {

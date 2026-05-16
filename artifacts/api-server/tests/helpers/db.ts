@@ -8,13 +8,16 @@ import {
   likesTable,
   ordersTable,
   orderEventsTable,
+  sessionsTable,
 } from "@workspace/db/schema";
+import crypto from "crypto";
 
 /**
  * Wipes all rows in dependency-safe order. Run before every test to
  * guarantee deterministic state — the integration suite shares one DB.
  */
 export async function resetDb() {
+  await db.delete(sessionsTable);
   await db.delete(orderEventsTable);
   await db.delete(ordersTable);
   await db.delete(likesTable);
@@ -56,4 +59,23 @@ export async function makeItem(sellerId: string, overrides: Partial<typeof items
     position: 0,
   });
   return item;
+}
+
+/**
+ * Creates a server session row directly for a given user and returns the
+ * session id (sid) which can be sent as `Authorization: Bearer <sid>`.
+ * Bypasses the OIDC flow for integration tests.
+ */
+export async function makeSession(userId: string): Promise<string> {
+  const sid = crypto.randomBytes(32).toString("hex");
+  await db.insert(sessionsTable).values({
+    sid,
+    sess: { userId, access_token: "test" } as unknown as Record<string, unknown>,
+    expire: new Date(Date.now() + 60 * 60 * 1000),
+  });
+  return sid;
+}
+
+export function bearer(sid: string): string {
+  return `Bearer ${sid}`;
 }

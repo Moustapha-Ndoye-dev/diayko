@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../src/app";
-import { resetDb, makeUser, makeItem } from "./helpers/db";
+import { resetDb, makeUser, makeItem, makeSession, bearer } from "./helpers/db";
 
 describe("GET /api/items", () => {
   beforeEach(async () => {
@@ -148,16 +148,17 @@ describe("POST /api/items/:id/like", () => {
     const seller = await makeUser("Seller");
     const liker = await makeUser("Liker");
     const item = await makeItem(seller.id);
+    const sid = await makeSession(liker.id);
 
     const r1 = await request(app)
       .post(`/api/items/${item.id}/like`)
-      .send({ userId: liker.id });
+      .set("Authorization", bearer(sid));
     expect(r1.status).toBe(200);
     expect(r1.body).toEqual({ liked: true, likesCount: 1 });
 
     const r2 = await request(app)
       .post(`/api/items/${item.id}/like`)
-      .send({ userId: liker.id });
+      .set("Authorization", bearer(sid));
     expect(r2.body).toEqual({ liked: false, likesCount: 0 });
   });
 });
