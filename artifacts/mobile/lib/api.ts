@@ -81,6 +81,38 @@ export type ApiMessage = {
   createdAt: string;
 };
 
+export type ApiOrderStatus = "processing" | "in_transit" | "delivered" | "cancelled";
+export type ApiPaymentMethod = "wave" | "orange_money" | "free_money";
+
+export type ApiOrderEvent = {
+  id: string;
+  orderId: string;
+  label: string;
+  position: number;
+  done: boolean;
+  occurredAt?: string | null;
+};
+
+export type ApiOrder = {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  itemId: string;
+  totalPrice: string;
+  status: ApiOrderStatus;
+  paymentMethod: ApiPaymentMethod;
+  carrier?: string | null;
+  trackingId?: string | null;
+  eta?: string | null;
+  createdAt: string;
+  item: ApiItem;
+};
+
+export type ApiOrderDetail = ApiOrder & {
+  seller: ApiUser;
+  events: ApiOrderEvent[];
+};
+
 export const api = {
   items: {
     list: (params?: {
@@ -136,6 +168,8 @@ export const api = {
       const query = qs.toString();
       return request<ApiItemListResponse>(`/users/${id}/items${query ? `?${query}` : ""}`);
     },
+    favorites: (id: string) =>
+      request<{ items: ApiItem[]; ids: string[] }>(`/users/${id}/favorites`),
   },
   categories: {
     list: () =>
@@ -160,6 +194,27 @@ export const api = {
       request<ApiMessage>(`/conversations/${id}/messages`, {
         method: "POST",
         body: JSON.stringify(body),
+      }),
+  },
+  orders: {
+    list: (params: { userId: string; status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
+      const qs = new URLSearchParams({ userId: params.userId });
+      if (params.status) qs.set("status", params.status);
+      if (params.role) qs.set("role", params.role);
+      return request<{ orders: ApiOrder[] }>(`/orders?${qs.toString()}`);
+    },
+    get: (id: string) => request<ApiOrderDetail>(`/orders/${id}`),
+    create: (body: {
+      buyerId: string;
+      itemId: string;
+      paymentMethod: ApiPaymentMethod;
+      carrier?: string;
+    }) =>
+      request<ApiOrder>("/orders", { method: "POST", body: JSON.stringify(body) }),
+    updateStatus: (id: string, status: ApiOrderStatus) =>
+      request<ApiOrder>(`/orders/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
       }),
   },
 };

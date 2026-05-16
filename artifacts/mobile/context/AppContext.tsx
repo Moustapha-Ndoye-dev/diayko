@@ -166,20 +166,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshFavorites = useCallback(async () => {
+    try {
+      const res = await api.users.favorites(CURRENT_USER.id);
+      setFavorites(new Set(res.ids));
+    } catch {
+      // Keep current favorites set on error.
+    }
+  }, []);
+
   useEffect(() => {
     setIsLoading(true);
-    refreshItems().finally(() => setIsLoading(false));
-  }, [refreshItems]);
+    Promise.all([refreshItems(), refreshFavorites()]).finally(() => setIsLoading(false));
+  }, [refreshItems, refreshFavorites]);
 
   const toggleFavorite = useCallback(
     (itemId: string) => {
+      const wasFavorite = favorites.has(itemId);
+      // Optimistic update — server is source of truth, we re-sync on failure.
       setFavorites((prev) => {
         const next = new Set(prev);
-        if (next.has(itemId)) {
-          next.delete(itemId);
-        } else {
-          next.add(itemId);
-        }
+        if (wasFavorite) next.delete(itemId);
+        else next.add(itemId);
         return next;
       });
       setItems((prev) =>
@@ -187,16 +195,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           item.id === itemId
             ? {
                 ...item,
-                likesCount: favorites.has(itemId)
-                  ? item.likesCount - 1
-                  : item.likesCount + 1,
+                likesCount: wasFavorite ? item.likesCount - 1 : item.likesCount + 1,
               }
-            : item
-        )
+            : item,
+        ),
       );
-      api.items.like(itemId, CURRENT_USER.id).catch(() => {});
+      api.items.like(itemId, CURRENT_USER.id).catch(() => {
+        // Revert on failure.
+        refreshFavorites();
+      });
     },
-    [favorites]
+    [favorites, refreshFavorites],
   );
 
   const addListing = useCallback((item: Item) => {

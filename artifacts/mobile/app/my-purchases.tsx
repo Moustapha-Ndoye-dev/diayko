@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,73 +7,71 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  Alert,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { fcfa } from "@/lib/currency";
+import { api, ApiOrder, ApiOrderStatus, ApiPaymentMethod } from "@/lib/api";
+import { useApp } from "@/context/AppContext";
 
-type OrderStatus = "delivered" | "in_transit" | "processing" | "cancelled";
-
-interface Order {
-  id: string;
-  itemTitle: string;
-  itemBrand: string;
-  price: number;
-  imageUri: string;
-  status: OrderStatus;
-  date: string;
-  deliveryMethod: string;
-}
-
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: string }> = {
+const STATUS_CONFIG: Record<ApiOrderStatus, { label: string; color: string; icon: string }> = {
   delivered: { label: "Livré", color: "#00853F", icon: "check-circle" },
   in_transit: { label: "En cours", color: "#F5C518", icon: "truck" },
   processing: { label: "En traitement", color: "#009CDE", icon: "clock" },
   cancelled: { label: "Annulé", color: "#C84B1C", icon: "x-circle" },
 };
 
-const MOCK_ORDERS: Order[] = [
-  {
-    id: "o1",
-    itemTitle: "Robe wax ankara multicolore",
-    itemBrand: "Artisan local",
-    price: 18000,
-    imageUri: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=200&q=60",
-    status: "delivered",
-    date: "14 mai 2026",
-    deliveryMethod: "Wave",
-  },
-  {
-    id: "o2",
-    itemTitle: "Jean slim délavé homme",
-    itemBrand: "Zara",
-    price: 12500,
-    imageUri: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&q=60",
-    status: "in_transit",
-    date: "16 mai 2026",
-    deliveryMethod: "Orange Money",
-  },
-  {
-    id: "o3",
-    itemTitle: "Sneakers blanches cuir",
-    itemBrand: "Nike",
-    price: 25000,
-    imageUri: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&q=60",
-    status: "processing",
-    date: "17 mai 2026",
-    deliveryMethod: "Free Money",
-  },
-];
+const PAYMENT_LABEL: Record<ApiPaymentMethod, string> = {
+  wave: "Wave",
+  orange_money: "Orange Money",
+  free_money: "Free Money",
+};
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
 
 export default function MyPurchasesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { currentUser } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const res = await api.orders.list({ userId: currentUser.id, role: "buyer" });
+      setOrders(res.orders);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -99,65 +97,75 @@ export default function MyPurchasesScreen() {
       borderColor: colors.border,
       overflow: "hidden",
     },
-    orderTop: {
-      flexDirection: "row",
-      padding: 14,
-      gap: 12,
-      alignItems: "flex-start",
-    },
+    orderTop: { flexDirection: "row", padding: 14, gap: 12, alignItems: "flex-start" },
     orderImage: { width: 70, height: 70, borderRadius: 8, backgroundColor: colors.muted },
     orderInfo: { flex: 1, gap: 4 },
     orderBrand: { fontSize: 12, fontFamily: "Inter_500Medium", color: colors.mutedForeground },
     orderTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.foreground, lineHeight: 20 },
     orderPrice: { fontSize: 16, fontFamily: "Inter_700Bold", color: colors.primary },
     statusBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      alignSelf: "flex-start",
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
+      flexDirection: "row", alignItems: "center", gap: 4,
+      alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
     },
     statusText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
     orderFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderTopWidth: 1,
-      borderTopColor: colors.separator,
-      gap: 8,
+      flexDirection: "row", alignItems: "center",
+      paddingHorizontal: 14, paddingVertical: 10,
+      borderTopWidth: 1, borderTopColor: colors.separator, gap: 8,
     },
     orderDate: { flex: 1, fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground },
-    orderBtn: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-    },
+    orderBtn: { borderWidth: 1, borderColor: colors.border, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 },
     orderBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: colors.foreground },
-    emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 12 },
+    centerContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 12 },
     emptyIcon: {
       width: 64, height: 64, borderRadius: 32,
-      backgroundColor: colors.accent, alignItems: "center", justifyContent: "center",
-      marginBottom: 4,
+      backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", marginBottom: 4,
     },
     emptyTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground, textAlign: "center" },
     emptySub: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center", lineHeight: 21 },
+    errorText: { fontSize: 13, color: colors.destructive, textAlign: "center" },
   });
 
-  if (MOCK_ORDERS.length === 0) {
+  const Header = (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Retour">
+        <Feather name="arrow-left" size={22} color={colors.foreground} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Mes achats</Text>
+    </View>
+  );
+
+  if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Feather name="arrow-left" size={22} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mes achats</Text>
+        {Header}
+        <View style={styles.centerContainer}>
+          <ActivityIndicator color={colors.primary} />
         </View>
-        <View style={styles.emptyContainer}>
+      </View>
+    );
+  }
+
+  if (error && orders.length === 0) {
+    return (
+      <View style={styles.container}>
+        {Header}
+        <View style={styles.centerContainer}>
+          <Feather name="alert-circle" size={28} color={colors.destructive} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.orderBtn} onPress={load}>
+            <Text style={styles.orderBtnText}>Réessayer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <View style={styles.container}>
+        {Header}
+        <View style={styles.centerContainer}>
           <View style={styles.emptyIcon}>
             <Feather name="shopping-bag" size={28} color={colors.primary} />
           </View>
@@ -170,42 +178,46 @@ export default function MyPurchasesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Retour"
-        >
-          <Feather name="arrow-left" size={22} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mes achats</Text>
-      </View>
-
+      {Header}
       <FlatList
-        data={MOCK_ORDERS}
+        data={orders}
         keyExtractor={(o) => o.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              load();
+            }}
+            tintColor={colors.primary}
+          />
+        }
         renderItem={({ item: order }) => {
           const cfg = STATUS_CONFIG[order.status];
+          const image = order.item.images[0];
           return (
             <View style={styles.orderCard}>
               <View style={styles.orderTop}>
-                <Image source={{ uri: order.imageUri }} style={styles.orderImage} resizeMode="cover" />
+                {image ? (
+                  <Image source={{ uri: image }} style={styles.orderImage} resizeMode="cover" />
+                ) : (
+                  <View style={styles.orderImage} />
+                )}
                 <View style={styles.orderInfo}>
-                  <Text style={styles.orderBrand}>{order.itemBrand}</Text>
-                  <Text style={styles.orderTitle} numberOfLines={2}>{order.itemTitle}</Text>
-                  <Text style={styles.orderPrice}>{fcfa(order.price)}</Text>
+                  <Text style={styles.orderBrand}>{order.item.brand}</Text>
+                  <Text style={styles.orderTitle} numberOfLines={2}>{order.item.title}</Text>
+                  <Text style={styles.orderPrice}>{fcfa(order.totalPrice)}</Text>
                   <View style={[styles.statusBadge, { backgroundColor: cfg.color + "1A" }]}>
-                    <Feather name={cfg.icon as any} size={12} color={cfg.color} />
+                    <Feather name={cfg.icon as never} size={12} color={cfg.color} />
                     <Text style={[styles.statusText, { color: cfg.color }]}>{cfg.label}</Text>
                   </View>
                 </View>
               </View>
               <View style={styles.orderFooter}>
                 <Text style={styles.orderDate}>
-                  {order.date} · {order.deliveryMethod}
+                  {formatDate(order.createdAt)} · {PAYMENT_LABEL[order.paymentMethod]}
                 </Text>
                 <TouchableOpacity
                   style={styles.orderBtn}
@@ -217,10 +229,10 @@ export default function MyPurchasesScreen() {
                       pathname: "/conversation/[id]",
                       params: {
                         id: `platform-order-${order.id}`,
-                        itemTitle: order.itemTitle,
-                        itemPrice: String(order.price),
-                        itemImage: order.imageUri,
-                        initialMessage: `📦 Commande du ${order.date} — ${order.itemTitle} (${order.deliveryMethod}). Statut : ${STATUS_CONFIG[order.status].label}.`,
+                        itemTitle: order.item.title,
+                        itemPrice: String(order.totalPrice),
+                        itemImage: image ?? "",
+                        initialMessage: `📦 Commande #${order.trackingId ?? order.id.slice(0, 8)} — ${order.item.title}. Statut : ${cfg.label}.`,
                       },
                     })
                   }

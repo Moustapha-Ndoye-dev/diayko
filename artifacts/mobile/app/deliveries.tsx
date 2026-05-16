@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,67 +7,66 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { fcfa } from "@/lib/currency";
+import { api, ApiOrderDetail } from "@/lib/api";
+import { useApp } from "@/context/AppContext";
 
-type Step = { label: string; date: string; done: boolean };
-
-interface Delivery {
-  id: string;
-  itemTitle: string;
-  imageUri: string;
-  price: number;
-  trackingId: string;
-  carrier: "Wave Express" | "DHL Sénégal" | "Sahel Logistique";
-  eta: string;
-  steps: Step[];
+function formatEventDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
 }
-
-const MOCK_DELIVERIES: Delivery[] = [
-  {
-    id: "d1",
-    itemTitle: "Jean slim délavé homme",
-    imageUri: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&q=60",
-    price: 12500,
-    trackingId: "DK-2026-08412",
-    carrier: "Wave Express",
-    eta: "Demain · 14h-17h",
-    steps: [
-      { label: "Commande confirmée", date: "16 mai · 09:42", done: true },
-      { label: "Prise en charge par le vendeur", date: "16 mai · 14:18", done: true },
-      { label: "En transit vers Dakar", date: "17 mai · 08:00", done: true },
-      { label: "En cours de livraison", date: "Aujourd'hui", done: false },
-      { label: "Livré", date: "—", done: false },
-    ],
-  },
-  {
-    id: "d2",
-    itemTitle: "Sneakers blanches cuir",
-    imageUri: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&q=60",
-    price: 25000,
-    trackingId: "DK-2026-08398",
-    carrier: "DHL Sénégal",
-    eta: "19 mai · matinée",
-    steps: [
-      { label: "Commande confirmée", date: "15 mai · 18:22", done: true },
-      { label: "Prise en charge par le vendeur", date: "16 mai · 10:00", done: true },
-      { label: "En transit", date: "17 mai", done: false },
-      { label: "En cours de livraison", date: "—", done: false },
-      { label: "Livré", date: "—", done: false },
-    ],
-  },
-];
 
 export default function DeliveriesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { currentUser } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const [deliveries, setDeliveries] = useState<ApiOrderDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      // Fetch active orders (processing + in_transit), then load detail for events.
+      const [proc, inTransit] = await Promise.all([
+        api.orders.list({ userId: currentUser.id, role: "buyer", status: "processing" }),
+        api.orders.list({ userId: currentUser.id, role: "buyer", status: "in_transit" }),
+      ]);
+      const summaries = [...inTransit.orders, ...proc.orders];
+      const details = await Promise.all(summaries.map((o) => api.orders.get(o.id)));
+      setDeliveries(details);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -106,56 +105,109 @@ export default function DeliveriesScreen() {
     empty: { padding: 32, alignItems: "center", gap: 6 },
     emptyTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.foreground, marginTop: 8 },
     emptyDesc: { fontSize: 13, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center" },
+    center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
+    errorText: { fontSize: 13, color: colors.destructive, textAlign: "center" },
+    retryBtn: { borderWidth: 1, borderColor: colors.border, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 8 },
+    retryText: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.foreground },
   });
 
-  const renderItem = ({ item }: { item: Delivery }) => (
-    <View style={styles.card}>
-      <View style={styles.topRow}>
-        <Image source={{ uri: item.imageUri }} style={styles.image} />
-        <View style={styles.info}>
-          <Text style={styles.itemTitle} numberOfLines={1}>{item.itemTitle}</Text>
-          <Text style={styles.meta}>{item.carrier} · #{item.trackingId}</Text>
-          <Text style={styles.price}>{fcfa(item.price)}</Text>
+  const renderItem = ({ item }: { item: ApiOrderDetail }) => {
+    const image = item.item.images[0];
+    return (
+      <View style={styles.card}>
+        <View style={styles.topRow}>
+          {image ? <Image source={{ uri: image }} style={styles.image} /> : <View style={styles.image} />}
+          <View style={styles.info}>
+            <Text style={styles.itemTitle} numberOfLines={1}>{item.item.title}</Text>
+            <Text style={styles.meta}>
+              {item.carrier ?? "Livraison"} · #{item.trackingId ?? item.id.slice(0, 8)}
+            </Text>
+            <Text style={styles.price}>{fcfa(item.totalPrice)}</Text>
+          </View>
+        </View>
+        {item.eta && (
+          <View style={styles.etaPill}>
+            <Feather name="clock" size={13} color={colors.primary} />
+            <Text style={styles.etaText}>Livraison estimée : {item.eta}</Text>
+          </View>
+        )}
+        <View style={styles.timeline}>
+          {item.events.map((step, i) => {
+            const isLast = i === item.events.length - 1;
+            return (
+              <View key={step.id} style={styles.step}>
+                <View style={styles.dotCol}>
+                  <View style={[styles.dot, { backgroundColor: step.done ? colors.primary : colors.border }]} />
+                  {!isLast && (
+                    <View style={[styles.line, { backgroundColor: step.done ? colors.primary : colors.border }]} />
+                  )}
+                </View>
+                <View style={styles.stepInfo}>
+                  <Text style={[styles.stepLabel, { color: step.done ? colors.foreground : colors.mutedForeground }]}>
+                    {step.label}
+                  </Text>
+                  <Text style={styles.stepDate}>{formatEventDate(step.occurredAt)}</Text>
+                </View>
+              </View>
+            );
+          })}
         </View>
       </View>
-      <View style={styles.etaPill}>
-        <Feather name="clock" size={13} color={colors.primary} />
-        <Text style={styles.etaText}>Livraison estimée : {item.eta}</Text>
-      </View>
-      <View style={styles.timeline}>
-        {item.steps.map((step, i) => {
-          const isLast = i === item.steps.length - 1;
-          return (
-            <View key={i} style={styles.step}>
-              <View style={styles.dotCol}>
-                <View style={[styles.dot, { backgroundColor: step.done ? colors.primary : colors.border }]} />
-                {!isLast && <View style={[styles.line, { backgroundColor: step.done ? colors.primary : colors.border }]} />}
-              </View>
-              <View style={styles.stepInfo}>
-                <Text style={[styles.stepLabel, { color: step.done ? colors.foreground : colors.mutedForeground }]}>
-                  {step.label}
-                </Text>
-                <Text style={styles.stepDate}>{step.date}</Text>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+    );
+  };
+
+  const Header = (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Retour">
+        <Feather name="chevron-left" size={24} color={colors.foreground} />
+      </TouchableOpacity>
+      <Text style={styles.title}>Mes livraisons</Text>
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        {Header}
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  if (error && deliveries.length === 0) {
+    return (
+      <View style={styles.container}>
+        {Header}
+        <View style={styles.center}>
+          <Feather name="alert-circle" size={28} color={colors.destructive} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={load}>
+            <Text style={styles.retryText}>Réessayer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Retour">
-          <Feather name="chevron-left" size={24} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Mes livraisons</Text>
-      </View>
+      {Header}
       <FlatList
-        data={MOCK_DELIVERIES}
+        data={deliveries}
         keyExtractor={(d) => d.id}
         renderItem={renderItem}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              load();
+            }}
+            tintColor={colors.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Feather name="truck" size={40} color={colors.mutedForeground} />
