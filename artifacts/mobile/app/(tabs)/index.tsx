@@ -156,7 +156,9 @@ export default function BrowseScreen() {
     <View>
       <View style={styles.header}>
         <View style={styles.topRow}>
-          <DiaykoLogo size={34} variant="full" wordmarkColor={colors.foreground} />
+          <View style={{ flex: 1 }}>
+            <DiaykoLogo size={34} variant="full" wordmarkColor={colors.foreground} />
+          </View>
           <View style={styles.iconBtnRow}>
             <TouchableOpacity
               style={styles.iconBtn}
