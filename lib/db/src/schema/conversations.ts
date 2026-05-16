@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, timestamp, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -6,10 +6,10 @@ import { itemsTable } from "./items";
 
 export const conversationsTable = pgTable("conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
-  buyerId: uuid("buyer_id")
+  buyerId: varchar("buyer_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  sellerId: uuid("seller_id")
+  sellerId: varchar("seller_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   itemId: uuid("item_id").references(() => itemsTable.id, { onDelete: "set null" }),
@@ -24,7 +24,7 @@ export const messagesTable = pgTable("messages", {
   conversationId: uuid("conversation_id")
     .notNull()
     .references(() => conversationsTable.id, { onDelete: "cascade" }),
-  senderId: uuid("sender_id")
+  senderId: varchar("sender_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   text: text("text").notNull(),
@@ -35,7 +35,7 @@ export const likesTable = pgTable(
   "likes",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
+    userId: varchar("user_id")
       .notNull()
       .references(() => usersTable.id, { onDelete: "cascade" }),
     itemId: uuid("item_id")

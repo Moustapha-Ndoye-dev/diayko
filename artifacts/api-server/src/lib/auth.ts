@@ -1,15 +1,24 @@
 import * as client from "openid-client";
 import crypto from "crypto";
 import { type Request, type Response } from "express";
-import { db, sessionsTable, usersTable, type User } from "@workspace/db";
+import { db, sessionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profileImageUrl: string | null;
+  sellerStatus: "none" | "pending" | "approved";
+}
 
 export const ISSUER_URL = process.env.ISSUER_URL ?? "https://replit.com/oidc";
 export const SESSION_COOKIE = "sid";
 export const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
 export interface SessionData {
-  userId: string;
+  user: AuthUser;
   access_token: string;
   refresh_token?: string;
   expires_at?: number;
@@ -19,12 +28,9 @@ let oidcConfig: client.Configuration | null = null;
 
 export async function getOidcConfig(): Promise<client.Configuration> {
   if (!oidcConfig) {
-    if (!process.env.REPL_ID) {
-      throw new Error("REPL_ID env var is required for Replit Auth");
-    }
     oidcConfig = await client.discovery(
       new URL(ISSUER_URL),
-      process.env.REPL_ID,
+      process.env.REPL_ID!,
     );
   }
   return oidcConfig;
@@ -85,63 +91,4 @@ export function getSessionId(req: Request): string | undefined {
     return authHeader.slice(7);
   }
   return req.cookies?.[SESSION_COOKIE];
-}
-
-export async function loadUser(userId: string): Promise<User | null> {
-  const [row] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.id, userId))
-    .limit(1);
-  return row ?? null;
-}
-
-export async function upsertUserFromClaims(
-  claims: Record<string, unknown>,
-): Promise<User> {
-  const sub = String(claims.sub);
-  const email = (claims.email as string | undefined) ?? null;
-  const firstName = (claims.first_name as string | undefined) ?? null;
-  const lastName = (claims.last_name as string | undefined) ?? null;
-  const profileImageUrl =
-    (claims.profile_image_url as string | undefined) ??
-    (claims.picture as string | undefined) ??
-    null;
-  const displayName =
-    [firstName, lastName].filter(Boolean).join(" ").trim() ||
-    email ||
-    "Utilisateur";
-
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.subId, sub))
-    .limit(1);
-
-  if (existing[0]) {
-    const [updated] = await db
-      .update(usersTable)
-      .set({
-        email,
-        firstName,
-        lastName,
-        profileImageUrl,
-      })
-      .where(eq(usersTable.id, existing[0].id))
-      .returning();
-    return updated!;
-  }
-
-  const [created] = await db
-    .insert(usersTable)
-    .values({
-      subId: sub,
-      email,
-      firstName,
-      lastName,
-      profileImageUrl,
-      name: displayName,
-    })
-    .returning();
-  return created!;
 }

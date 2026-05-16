@@ -8,20 +8,22 @@ WebBrowser.maybeCompleteAuthSession();
 const AUTH_TOKEN_KEY = "auth_session_token";
 const ISSUER_URL = process.env.EXPO_PUBLIC_ISSUER_URL ?? "https://replit.com/oidc";
 
-interface User {
+export interface AuthUser {
   id: string;
   email: string | null;
   firstName: string | null;
   lastName: string | null;
   profileImageUrl: string | null;
+  sellerStatus: "none" | "pending" | "approved";
 }
 
 interface AuthContextValue {
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
   login: async () => {},
   logout: async () => {},
+  refreshUser: async () => {},
 });
 
 function getApiBaseUrl(): string {
@@ -44,11 +47,10 @@ function getClientId(): string {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const discovery = AuthSession.useAutoDiscovery(ISSUER_URL);
-
   const redirectUri = AuthSession.makeRedirectUri();
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -77,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
 
       if (data.user) {
-        setUser(data.user);
+        setUser(data.user as AuthUser);
       } else {
         await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
         setUser(null);
@@ -101,10 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const apiBase = getApiBaseUrl();
-        if (!apiBase) {
-          console.error("API base URL is not configured.");
-          return;
-        }
+        if (!apiBase) return;
 
         const exchangeRes = await fetch(`${apiBase}/api/mobile-auth/token-exchange`, {
           method: "POST",
@@ -114,12 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             code_verifier: request.codeVerifier,
             redirect_uri: redirectUri,
             state,
-            nonce: (request as { nonce?: string }).nonce,
           }),
         });
 
         if (!exchangeRes.ok) {
-          console.error("Token exchange failed:", exchangeRes.status);
           setIsLoading(false);
           return;
         }
@@ -130,8 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(true);
           await fetchUser();
         }
-      } catch (err) {
-        console.error("Token exchange error:", err);
+      } catch {
         setIsLoading(false);
       }
     })();
@@ -140,8 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async () => {
     try {
       await promptAsync();
-    } catch (err) {
-      console.error("Login error:", err);
+    } catch {
+      // ignore
     }
   }, [promptAsync]);
 
@@ -156,11 +152,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
     } catch {
+      // ignore
     } finally {
       await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
       setUser(null);
     }
   }, []);
+
+  const refreshUser = useCallback(async () => {
+    await fetchUser();
+  }, [fetchUser]);
 
   return (
     <AuthContext.Provider
@@ -170,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}
@@ -179,4 +181,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   return useContext(AuthContext);
+}
+
+export async function getAuthToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(AUTH_TOKEN_KEY);
 }

@@ -5,6 +5,7 @@
  * Vinted clone API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { AuthUserSellerStatus } from './authUserSellerStatus';
 
 export interface AuthUser {
   id: string;
@@ -16,4 +17,5 @@ export interface AuthUser {
   lastName: string | null;
   /** @nullable */
   profileImageUrl: string | null;
+  sellerStatus: AuthUserSellerStatus;
 }

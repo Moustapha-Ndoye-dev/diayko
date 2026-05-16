@@ -10,7 +10,11 @@ import {
   orderEventsTable,
 } from "@workspace/db/schema";
 
-const SOPHIE_ID = "00000000-0000-0000-0000-000000000001";
+const SOPHIE_ID = "seed-sophie";
+const EMMA_ID = "seed-emma";
+const LUCAS_ID = "seed-lucas";
+const CHLOE_ID = "seed-chloe";
+const MATHIEU_ID = "seed-mathieu";
 
 async function seed() {
   console.log("🌱 Seeding database...");
@@ -40,6 +44,7 @@ async function seed() {
         verified: true,
       },
       {
+        id: EMMA_ID,
         name: "Emma Faye",
         bio: "Pièces vintage, dressing minimaliste.",
         rating: "4.7",
@@ -49,6 +54,7 @@ async function seed() {
         followingCount: 45,
       },
       {
+        id: LUCAS_ID,
         name: "Lucas Ndiaye",
         bio: "Articles de qualité à prix justes.",
         rating: "4.8",
@@ -58,6 +64,7 @@ async function seed() {
         followingCount: 120,
       },
       {
+        id: CHLOE_ID,
         name: "Chloé Ba",
         bio: "Expédition rapide, descriptions honnêtes !",
         rating: "5.0",
@@ -68,6 +75,7 @@ async function seed() {
         verified: true,
       },
       {
+        id: MATHIEU_ID,
         name: "Mathieu Sarr",
         bio: "Je vide mon dressing.",
         rating: "4.6",

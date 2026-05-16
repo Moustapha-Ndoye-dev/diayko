@@ -7,17 +7,16 @@ import React, {
   ReactNode,
 } from "react";
 import { api, ApiItem, ApiUser } from "@/lib/api";
+import { useAuth, type AuthUser } from "@/lib/auth";
 import { Item, Seller, Condition, Conversation, ConversationItem } from "@/types";
 import { ApiConversation } from "@/lib/api";
-import { storage, SellerStatus } from "@/lib/storage";
-import { useAuth } from "@/lib/auth";
 
 // ─── Adapters ─────────────────────────────────────────────────────────────────
 
 export function toSeller(u: ApiUser): Seller {
   return {
     id: u.id,
-    name: u.name,
+    name: u.name ?? "Vendeur",
     bio: u.bio ?? undefined,
     rating: Number(u.rating),
     reviewCount: u.reviewCount,
@@ -85,7 +84,25 @@ function toConversation(c: ApiConversation): Conversation | null {
   };
 }
 
+function authUserToSeller(user: AuthUser): Seller {
+  const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Mon compte";
+  return {
+    id: user.id,
+    name,
+    bio: undefined,
+    rating: 0,
+    reviewCount: 0,
+    itemCount: 0,
+    followersCount: 0,
+    followingCount: 0,
+    joinedAt: new Date().toISOString().slice(0, 10),
+    verified: false,
+  };
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
+
+export type SellerStatus = "none" | "pending" | "approved";
 
 interface ListFilters {
   category?: string;
@@ -112,63 +129,42 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const CURRENT_USER: Seller = {
-  id: "00000000-0000-0000-0000-000000000001",
-  name: "Sophie Martin",
-  bio: "Fashion lover, sustainable shopper.",
-  rating: 4.9,
-  reviewCount: 128,
-  itemCount: 45,
-  followersCount: 320,
-  followingCount: 89,
-  joinedAt: "2022-03-01",
-  verified: true,
-};
-
 export function AppProvider({ children }: { children: ReactNode }) {
-  const { user: authUser } = useAuth();
+  const { user, refreshUser } = useAuth();
+
   const [items, setItems] = useState<Item[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [myListings, setMyListings] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sellerStatus, setSellerStatus] = useState<SellerStatus>("none");
 
-  const currentUser: Seller = authUser
-    ? {
-        ...CURRENT_USER,
-        id: authUser.id,
-        name:
-          [authUser.firstName, authUser.lastName].filter(Boolean).join(" ").trim() ||
-          authUser.email ||
-          "Utilisateur",
-      }
-    : CURRENT_USER;
+  const sellerStatus: SellerStatus = (user?.sellerStatus as SellerStatus) ?? "none";
 
-  useEffect(() => {
-    storage.sellerStatus.get().then(setSellerStatus);
-  }, []);
+  const currentUser: Seller = user ? authUserToSeller(user) : PLACEHOLDER_SELLER;
 
-  // Simulated reviewer: when a request is submitted, auto-approve after ~6s.
-  // Replace with a real backend approval flow when the moderation pipeline ships.
+  // Auto-approve after 6s when status is pending (mirrors the prior simulation, now server-backed).
   useEffect(() => {
     if (sellerStatus !== "pending") return;
     const t = setTimeout(async () => {
-      await storage.sellerStatus.set("approved");
-      setSellerStatus("approved");
+      try {
+        await api.sellerAccess.approve();
+        await refreshUser();
+      } catch {
+        // ignore — status will be re-read on next refresh
+      }
     }, 6000);
     return () => clearTimeout(t);
-  }, [sellerStatus]);
+  }, [sellerStatus, refreshUser]);
 
   const requestSellerAccess = useCallback(async () => {
-    await storage.sellerStatus.set("pending");
-    setSellerStatus("pending");
-  }, []);
+    await api.sellerAccess.request();
+    await refreshUser();
+  }, [refreshUser]);
 
   const resetSellerStatus = useCallback(async () => {
-    await storage.sellerStatus.set("none");
-    setSellerStatus("none");
-  }, []);
+    await api.sellerAccess.reset();
+    await refreshUser();
+  }, [refreshUser]);
 
   const refreshItems = useCallback(async (filters?: ListFilters) => {
     try {
@@ -180,17 +176,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshFavorites = useCallback(async () => {
-    if (!authUser) {
-      setFavorites(new Set());
-      return;
-    }
+    if (!user) return;
     try {
-      const res = await api.users.favorites(currentUser.id);
+      const res = await api.users.favorites(user.id);
       setFavorites(new Set(res.ids));
     } catch {
       // Keep current favorites set on error.
     }
-  }, [authUser, currentUser.id]);
+  }, [user]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -199,8 +192,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorite = useCallback(
     (itemId: string) => {
+      if (!user) return;
       const wasFavorite = favorites.has(itemId);
-      // Optimistic update — server is source of truth, we re-sync on failure.
       setFavorites((prev) => {
         const next = new Set(prev);
         if (wasFavorite) next.delete(itemId);
@@ -217,12 +210,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : item,
         ),
       );
-      api.items.like(itemId, currentUser.id).catch(() => {
-        // Revert on failure.
+      api.items.like(itemId, user.id).catch(() => {
         refreshFavorites();
       });
     },
-    [favorites, refreshFavorites],
+    [favorites, refreshFavorites, user],
   );
 
   const addListing = useCallback((item: Item) => {

@@ -12,11 +12,18 @@ import { z } from "zod";
 
 const router: IRouter = Router();
 
+/**
+ * GET /conversations
+ *
+ * Returns the conversation inbox for the authenticated user. Identity is
+ * derived exclusively from the verified session — no caller-supplied userId.
+ */
 router.get("/conversations", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
+
   const userId = req.user.id;
 
   const rows = await db
@@ -45,7 +52,7 @@ router.get("/conversations", async (req, res) => {
       ? db
           .select()
           .from(usersTable)
-          .where(sql`${usersTable.id} = ANY(${sql.raw(`ARRAY[${otherUserIds.map((id) => `'${id}'`).join(",")}]::uuid[]`)})`)
+          .where(sql`${usersTable.id} = ANY(${sql.raw(`ARRAY[${otherUserIds.map((id) => `'${id}'`).join(",")}]::text[]`)})`)
       : Promise.resolve([]),
     itemIds.length > 0
       ? db
@@ -83,6 +90,13 @@ router.get("/conversations", async (req, res) => {
   res.json(result);
 });
 
+/**
+ * POST /conversations
+ *
+ * Creates a conversation. The authenticated user becomes the buyer — buyerId
+ * is never read from the request body. If itemId is supplied, sellerId is
+ * verified against the item's actual seller.
+ */
 router.post("/conversations", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
@@ -90,7 +104,7 @@ router.post("/conversations", async (req, res) => {
   }
 
   const bodySchema = z.object({
-    sellerId: z.string().uuid(),
+    sellerId: z.string(),
     itemId: z.string().uuid().optional().nullable(),
     initialMessage: z.string().optional(),
   });
@@ -103,6 +117,29 @@ router.post("/conversations", async (req, res) => {
 
   const { sellerId, itemId, initialMessage } = parsed.data;
   const buyerId = req.user.id;
+
+  if (buyerId === sellerId) {
+    res.status(400).json({ error: "Cannot start a conversation with yourself" });
+    return;
+  }
+
+  if (itemId) {
+    const [item] = await db
+      .select({ sellerId: itemsTable.sellerId })
+      .from(itemsTable)
+      .where(eq(itemsTable.id, itemId))
+      .limit(1);
+
+    if (!item) {
+      res.status(404).json({ error: "Item not found" });
+      return;
+    }
+
+    if (item.sellerId !== sellerId) {
+      res.status(403).json({ error: "sellerId does not match the item's seller" });
+      return;
+    }
+  }
 
   const [conv] = await db
     .insert(conversationsTable)
@@ -117,7 +154,7 @@ router.post("/conversations", async (req, res) => {
 
   if (initialMessage) {
     await db.insert(messagesTable).values({
-      conversationId: conv!.id,
+      conversationId: conv.id,
       senderId: buyerId,
       text: initialMessage,
     });
@@ -132,20 +169,52 @@ router.post("/conversations", async (req, res) => {
   res.status(201).json({ ...conv, otherUser: otherUser ?? null, item: null });
 });
 
+/**
+ * GET /conversations/:id/messages
+ *
+ * Returns message history. The caller must be an authenticated participant —
+ * identity is derived from the session, never a query param.
+ */
 router.get("/conversations/:id/messages", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
+
+  const userId = req.user.id;
+  const conversationId = String(req.params.id);
+
+  const [conv] = await db
+    .select({ buyerId: conversationsTable.buyerId, sellerId: conversationsTable.sellerId })
+    .from(conversationsTable)
+    .where(eq(conversationsTable.id, conversationId))
+    .limit(1);
+
+  if (!conv) {
+    res.status(404).json({ error: "Conversation not found" });
+    return;
+  }
+
+  if (conv.buyerId !== userId && conv.sellerId !== userId) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+
   const rows = await db
     .select()
     .from(messagesTable)
-    .where(eq(messagesTable.conversationId, req.params.id))
+    .where(eq(messagesTable.conversationId, conversationId))
     .orderBy(messagesTable.createdAt);
 
   res.json(rows);
 });
 
+/**
+ * POST /conversations/:id/messages
+ *
+ * Sends a message. The sender is derived from the authenticated session —
+ * any senderId in the body is ignored. The caller must be a participant.
+ */
 router.post("/conversations/:id/messages", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
@@ -164,7 +233,23 @@ router.post("/conversations/:id/messages", async (req, res) => {
 
   const { text } = parsed.data;
   const senderId = req.user.id;
-  const conversationId = req.params.id;
+  const conversationId = String(req.params.id);
+
+  const [conv] = await db
+    .select({ buyerId: conversationsTable.buyerId, sellerId: conversationsTable.sellerId })
+    .from(conversationsTable)
+    .where(eq(conversationsTable.id, conversationId))
+    .limit(1);
+
+  if (!conv) {
+    res.status(404).json({ error: "Conversation not found" });
+    return;
+  }
+
+  if (conv.buyerId !== senderId && conv.sellerId !== senderId) {
+    res.status(403).json({ error: "You are not a participant of this conversation" });
+    return;
+  }
 
   const [msg] = await db
     .insert(messagesTable)

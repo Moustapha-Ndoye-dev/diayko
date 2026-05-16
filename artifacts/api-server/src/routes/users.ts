@@ -7,8 +7,12 @@ import { z } from "zod";
 const router: IRouter = Router();
 
 router.post("/users", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
   const bodySchema = z.object({
-    name: z.string().min(2),
     bio: z.string().optional().nullable(),
   });
 
@@ -18,8 +22,13 @@ router.post("/users", async (req, res) => {
     return;
   }
 
-  const [user] = await db.insert(usersTable).values(parsed.data).returning();
-  res.status(201).json(user);
+  const [user] = await db
+    .update(usersTable)
+    .set({ bio: parsed.data.bio ?? null, updatedAt: new Date() })
+    .where(eq(usersTable.id, req.user.id))
+    .returning();
+
+  res.json(user ?? null);
 });
 
 router.get("/users/:id", async (req, res) => {

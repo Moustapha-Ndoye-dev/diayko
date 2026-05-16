@@ -19,6 +19,7 @@ import { useColors } from "@/hooks/useColors";
 import { api, ApiMessage } from "@/lib/api";
 import { AsyncState } from "@/types";
 import { censorMessage, hasCensoredContent } from "@/lib/censor";
+import { useApp } from "@/context/AppContext";
 
 // ── Platform identity ────────────────────────────────────────────────────────
 const PLATFORM_NAME = "Diayko";
@@ -57,12 +58,13 @@ export default function ConversationScreen() {
   const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { currentUser } = useApp();
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [messagesState, setMessagesState] = useState<AsyncState<ChatMessage[]>>({ status: "loading" });
 
-  const currentUserId = "local-user";
+  const currentUserId = currentUser.id;
 
   const loadMessages = useCallback(async () => {
     if (!id) return;

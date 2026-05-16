@@ -1,27 +1,18 @@
 import * as oidc from "openid-client";
 import { type Request, type Response, type NextFunction } from "express";
-import type { User } from "@workspace/db";
-import { HttpError } from "./errorHandler";
+import type { AuthUser } from "../lib/auth.js";
 import {
   clearSession,
   getOidcConfig,
   getSessionId,
   getSession,
-  loadUser,
   updateSession,
   type SessionData,
-} from "../lib/auth";
+} from "../lib/auth.js";
 
 declare global {
   namespace Express {
-    interface User {
-      id: string;
-      email: string | null;
-      firstName: string | null;
-      lastName: string | null;
-      profileImageUrl: string | null;
-      name: string;
-    }
+    interface User extends AuthUser {}
 
     interface Request {
       isAuthenticated(): this is AuthedRequest;
@@ -40,6 +31,7 @@ async function refreshIfExpired(
 ): Promise<SessionData | null> {
   const now = Math.floor(Date.now() / 1000);
   if (!session.expires_at || now <= session.expires_at) return session;
+
   if (!session.refresh_token) return null;
 
   try {
@@ -60,17 +52,6 @@ async function refreshIfExpired(
   }
 }
 
-function toExpressUser(row: User): Express.User {
-  return {
-    id: row.id,
-    email: row.email,
-    firstName: row.firstName,
-    lastName: row.lastName,
-    profileImageUrl: row.profileImageUrl,
-    name: row.name,
-  };
-}
-
 export async function authMiddleware(
   req: Request,
   res: Response,
@@ -87,7 +68,7 @@ export async function authMiddleware(
   }
 
   const session = await getSession(sid);
-  if (!session?.userId) {
+  if (!session?.user?.id) {
     await clearSession(res, sid);
     next();
     return;
@@ -100,24 +81,18 @@ export async function authMiddleware(
     return;
   }
 
-  const userRow = await loadUser(refreshed.userId);
-  if (!userRow) {
-    await clearSession(res, sid);
-    next();
-    return;
-  }
-
-  req.user = toExpressUser(userRow);
+  req.user = refreshed.user;
   next();
 }
 
+/** Middleware that requires an authenticated session. Returns 401 if not authenticated. */
 export function requireAuth(
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction,
 ) {
   if (!req.isAuthenticated()) {
-    next(new HttpError(401, "Authentication required"));
+    res.status(401).json({ error: "Authentication required" });
     return;
   }
   next();

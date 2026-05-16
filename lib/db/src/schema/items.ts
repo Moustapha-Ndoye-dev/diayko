@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -16,7 +16,7 @@ export const itemsTable = pgTable("items", {
   category: text("category").notNull(),
   description: text("description").notNull(),
   color: text("color"),
-  sellerId: uuid("seller_id")
+  sellerId: varchar("seller_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   likesCount: integer("likes_count").notNull().default(0),

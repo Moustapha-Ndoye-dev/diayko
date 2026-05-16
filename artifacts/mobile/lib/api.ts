@@ -1,18 +1,15 @@
 import * as SecureStore from "expo-secure-store";
 
+const AUTH_TOKEN_KEY = "auth_session_token";
+
 const BASE =
   typeof __DEV__ !== "undefined" && __DEV__
     ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
     : `/api`;
 
-const AUTH_TOKEN_KEY = "auth_session_token";
-
-async function getAuthToken(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-  } catch {
-    return null;
-  }
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function request<T>(
@@ -20,15 +17,14 @@ async function request<T>(
   options?: RequestInit
 ): Promise<T> {
   const url = `${BASE}${path}`;
-  const token = await getAuthToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options?.headers as Record<string, string> | undefined),
-  };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const authHeader = await getAuthHeader();
   const res = await fetch(url, {
-    headers,
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader,
+      ...options?.headers,
+    },
   });
   if (!res.ok) {
     const body = await res.text();
@@ -59,7 +55,7 @@ export type ApiItem = {
 
 export type ApiUser = {
   id: string;
-  name: string;
+  name?: string | null;
   bio?: string | null;
   rating: number;
   reviewCount: number;
@@ -169,9 +165,10 @@ export const api = {
     delete: (id: string) => request<void>(`/items/${id}`, { method: "DELETE" }),
     view: (id: string) =>
       request<{ viewsCount: number }>(`/items/${id}/view`, { method: "POST" }),
-    like: (id: string, _userId: string) =>
+    like: (id: string, userId: string) =>
       request<{ liked: boolean; likesCount: number }>(`/items/${id}/like`, {
         method: "POST",
+        body: JSON.stringify({ userId }),
       }),
   },
   users: {
@@ -185,16 +182,23 @@ export const api = {
       const query = qs.toString();
       return request<ApiItemListResponse>(`/users/${id}/items${query ? `?${query}` : ""}`);
     },
-    favorites: (_id: string) =>
-      request<{ items: ApiItem[]; ids: string[] }>(`/me/favorites`),
+    favorites: (id: string) =>
+      request<{ items: ApiItem[]; ids: string[] }>(`/users/${id}/favorites`),
   },
   categories: {
     list: () =>
       request<{ id: string; label: string; icon: string }[]>("/categories"),
   },
+  sellerAccess: {
+    request: () =>
+      request<{ sellerStatus: string }>("/users/me/seller-access", { method: "POST" }),
+    approve: () =>
+      request<{ sellerStatus: string }>("/users/me/seller-access/approve", { method: "POST" }),
+    reset: () =>
+      request<{ sellerStatus: string }>("/users/me/seller-access/reset", { method: "POST" }),
+  },
   conversations: {
-    list: (_userId?: string) =>
-      request<ApiConversation[]>(`/conversations`),
+    list: () => request<ApiConversation[]>("/conversations"),
     create: (body: {
       sellerId: string;
       itemId?: string | null;
@@ -213,15 +217,15 @@ export const api = {
       }),
   },
   orders: {
-    list: (params: { status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
-      const qs = new URLSearchParams();
+    list: (params: { userId: string; status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
+      const qs = new URLSearchParams({ userId: params.userId });
       if (params.status) qs.set("status", params.status);
       if (params.role) qs.set("role", params.role);
-      const q = qs.toString();
-      return request<{ orders: ApiOrder[] }>(`/orders${q ? `?${q}` : ""}`);
+      return request<{ orders: ApiOrder[] }>(`/orders?${qs.toString()}`);
     },
     get: (id: string) => request<ApiOrderDetail>(`/orders/${id}`),
     create: (body: {
+      buyerId: string;
       itemId: string;
       paymentMethod: ApiPaymentMethod;
       carrier?: string;

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: Auth
+    description: Browser and mobile authentication endpoints.
   - name: items
     description: Marketplace listings
   - name: users
@@ -18,8 +20,6 @@ tags:
     description: Item categories
   - name: conversations
     description: Messaging between buyers and sellers
-  - name: Auth
-    description: Browser and mobile authentication endpoints.
 
 paths:
   /auth/user:
@@ -37,27 +37,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthUserEnvelope'
-  /me:
-    get:
-      tags: [Auth]
-      operationId: getMe
-      summary: Get the currently authenticated app user (full profile)
-      parameters:
-        - $ref: '#/components/parameters/AuthorizationSessionHeader'
-        - $ref: '#/components/parameters/SessionCookie'
-      responses:
-        '200':
-          description: Authenticated user profile
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
   /login:
     get:
       tags: [Auth]
@@ -81,15 +60,19 @@ paths:
         - name: code
           in: query
           required: false
-          schema: { type: string }
+          schema:
+            type: string
         - name: state
           in: query
           required: false
-          schema: { type: string }
+          schema:
+            type: string
         - name: iss
           in: query
           required: false
-          schema: { type: string, format: uri }
+          schema:
+            type: string
+            format: uri
       responses:
         '302':
           description: Redirect to the returnTo path on success or /api/login on failure.
@@ -400,7 +383,12 @@ paths:
     get:
       operationId: listConversations
       tags: [conversations]
-      summary: List conversations for the authenticated user
+      summary: List conversations for a user
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
       responses:
         "200":
           description: Conversations list
@@ -486,21 +474,26 @@ components:
       description: Browser session cookie.
       schema:
         type: string
+
   schemas:
     AuthUser:
       type: object
-      required: [id, email, firstName, lastName, profileImageUrl]
+      required: [id, email, firstName, lastName, profileImageUrl, sellerStatus]
       properties:
         id:
           type: string
         email:
           type: [string, 'null']
+          format: email
         firstName:
           type: [string, 'null']
         lastName:
           type: [string, 'null']
         profileImageUrl:
           type: [string, 'null']
+        sellerStatus:
+          type: string
+          enum: [none, pending, approved]
     AuthUserEnvelope:
       type: object
       required: [user]
@@ -548,7 +541,6 @@ components:
       properties:
         error:
           type: string
-
     HealthStatus:
       type: object
       properties:
@@ -677,7 +669,11 @@ components:
 
     LikeBody:
       type: object
-      properties: {}
+      properties:
+        userId:
+          type: string
+          format: uuid
+      required: [userId]
 
     LikeResponse:
       type: object
@@ -777,6 +773,9 @@ components:
     CreateConversationBody:
       type: object
       properties:
+        buyerId:
+          type: string
+          format: uuid
         sellerId:
           type: string
           format: uuid
@@ -786,7 +785,7 @@ components:
           nullable: true
         initialMessage:
           type: string
-      required: [sellerId]
+      required: [buyerId, sellerId]
 
     Message:
       type: object
@@ -810,7 +809,10 @@ components:
     SendMessageBody:
       type: object
       properties:
+        senderId:
+          type: string
+          format: uuid
         text:
           type: string
           minLength: 1
-      required: [text]
+      required: [senderId, text]

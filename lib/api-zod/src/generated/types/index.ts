@@ -9,6 +9,7 @@
 export * from './authorizationSessionHeaderParameter';
 export * from './authUser';
 export * from './authUserEnvelope';
+export * from './authUserSellerStatus';
 export * from './beginBrowserLoginParams';
 export * from './category';
 export * from './conversation';
@@ -27,6 +28,7 @@ export * from './itemDetail';
 export * from './itemListResponse';
 export * from './likeBody';
 export * from './likeResponse';
+export * from './listConversationsParams';
 export * from './listItemsParams';
 export * from './logoutSuccess';
 export * from './message';

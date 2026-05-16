@@ -1,83 +1,151 @@
 import React from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
 } from "react-native";
-import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
-import colors from "@/constants/colors";
+import Colors from "@/constants/colors";
 
-const PRIMARY = colors.light.tint;
+const PRIMARY = Colors.light.primary;
 
 export default function LoginScreen() {
-  const { login, isLoading, isAuthenticated, logout, user } = useAuth();
+  const { login, isLoading } = useAuth();
+  const [pending, setPending] = React.useState(false);
 
-  React.useEffect(() => {
-    if (isAuthenticated && router.canGoBack()) router.back();
-  }, [isAuthenticated]);
+  async function handleLogin() {
+    setPending(true);
+    try {
+      await login();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={PRIMARY} />
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
         <Text style={styles.title}>Bienvenue sur Diayko</Text>
         <Text style={styles.subtitle}>
-          Connecte-toi pour acheter, vendre et discuter en toute sécurité.
+          La marketplace de la mode de seconde main
         </Text>
 
-        {isLoading ? (
-          <ActivityIndicator color={PRIMARY} />
-        ) : isAuthenticated ? (
-          <View style={{ alignItems: "center", gap: 12 }}>
-            <Text style={styles.body}>
-              Connecté en tant que {user?.email ?? user?.firstName ?? "Utilisateur"}
-            </Text>
-            <Pressable style={styles.secondaryBtn} onPress={() => logout()}>
-              <Text style={styles.secondaryBtnText}>Se déconnecter</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            style={styles.primaryBtn}
-            onPress={() => {
-              login();
-            }}
-          >
-            <Text style={styles.primaryBtnText}>Se connecter</Text>
-          </Pressable>
-        )}
+        <TouchableOpacity
+          style={[styles.button, pending && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={pending}
+          activeOpacity={0.85}
+        >
+          {pending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Se connecter</Text>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.legal}>
+          En continuant, vous acceptez nos Conditions d'utilisation et notre
+          Politique de confidentialité.
+        </Text>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
   container: {
     flex: 1,
-    padding: 24,
+    backgroundColor: "#fff",
     justifyContent: "center",
-    gap: 20,
-  },
-  title: { fontSize: 28, fontWeight: "700", color: "#111", textAlign: "center" },
-  subtitle: { fontSize: 16, color: "#555", textAlign: "center", marginBottom: 16 },
-  body: { fontSize: 16, color: "#333" },
-  primaryBtn: {
-    backgroundColor: PRIMARY,
-    paddingVertical: 14,
-    borderRadius: 12,
     alignItems: "center",
   },
-  primaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  secondaryBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ddd",
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    width: "100%",
   },
-  secondaryBtnText: { color: "#333", fontWeight: "600" },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 24,
+    overflow: "hidden",
+    marginBottom: 32,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+  },
+  logo: {
+    width: "100%",
+    height: "100%",
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: "Inter_700Bold",
+    color: "#111",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: "Inter_400Regular",
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 48,
+    lineHeight: 24,
+  },
+  button: {
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.3,
+  },
+  legal: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: "#999",
+    textAlign: "center",
+    lineHeight: 18,
+    paddingHorizontal: 16,
+  },
 });

@@ -5,6 +5,15 @@
  * Vinted clone API specification
  * OpenAPI spec version: 0.1.0
  */
+export type AuthUserSellerStatus = typeof AuthUserSellerStatus[keyof typeof AuthUserSellerStatus];
+
+
+export const AuthUserSellerStatus = {
+  none: 'none',
+  pending: 'pending',
+  approved: 'approved',
+} as const;
+
 export interface AuthUser {
   id: string;
   /** @nullable */
@@ -15,6 +24,7 @@ export interface AuthUser {
   lastName: string | null;
   /** @nullable */
   profileImageUrl: string | null;
+  sellerStatus: AuthUserSellerStatus;
 }
 
 export interface AuthUserEnvelope {
@@ -139,7 +149,9 @@ export interface ViewCountResponse {
   viewsCount: number;
 }
 
-export interface LikeBody { [key: string]: unknown }
+export interface LikeBody {
+  userId: string;
+}
 
 export interface LikeResponse {
   liked: boolean;
@@ -172,6 +184,7 @@ export interface Conversation {
 }
 
 export interface CreateConversationBody {
+  buyerId: string;
   sellerId: string;
   itemId?: string | null;
   initialMessage?: string;
@@ -186,6 +199,7 @@ export interface Message {
 }
 
 export interface SendMessageBody {
+  senderId: string;
   /** @minLength 1 */
   text: string;
 }
@@ -219,5 +233,9 @@ limit?: number;
 export type GetUserItemsParams = {
 page?: number;
 limit?: number;
+};
+
+export type ListConversationsParams = {
+userId: string;
 };
 

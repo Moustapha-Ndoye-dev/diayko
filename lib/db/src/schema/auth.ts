@@ -1,7 +1,6 @@
-import { sql } from "drizzle-orm";
 import { index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// (IMPORTANT) This table is mandatory for Replit Auth — do not drop it.
 export const sessionsTable = pgTable(
   "sessions",
   {
@@ -11,6 +10,3 @@ export const sessionsTable = pgTable(
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
-
-export type Session = typeof sessionsTable.$inferSelect;
-export const _sql = sql;

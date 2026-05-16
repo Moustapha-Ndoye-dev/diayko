@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, numeric, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, timestamp, numeric, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -10,10 +10,10 @@ export const carriers = ["Wave Express", "DHL Sénégal", "Sahel Logistique"] as
 
 export const ordersTable = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
-  buyerId: uuid("buyer_id")
+  buyerId: varchar("buyer_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  sellerId: uuid("seller_id")
+  sellerId: varchar("seller_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   itemId: uuid("item_id")
