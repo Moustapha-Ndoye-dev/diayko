@@ -290,7 +290,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <Text style={styles.version}>Vinted Clone · Version 1.0.0</Text>
+        <Text style={styles.version}>Diayko · Version 1.0.0</Text>
       </ScrollView>
     </View>
   );

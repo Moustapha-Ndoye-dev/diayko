@@ -27,8 +27,8 @@ const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=70";
 
 // The platform brand identity shown in place of the real seller.
-const PLATFORM_NAME = "Vinted";
-const PLATFORM_AVATAR = "V";
+const PLATFORM_NAME = "Diayko";
+const PLATFORM_AVATAR = "D";
 const PLATFORM_CONV_ID_PREFIX = "platform-";
 
 export default function ItemDetailScreen() {
@@ -68,7 +68,7 @@ export default function ItemDetailScreen() {
         itemTitle: item?.title ?? "",
         itemPrice: String(item?.price ?? ""),
         itemImage: item?.images[0] ?? "",
-        initialMessage: `Votre commande pour "${item?.title}" a été confirmée ! Le paiement est sécurisé par Vinted. Vous serez notifié(e) dès l'expédition.`,
+        initialMessage: `Votre commande pour "${item?.title}" a été confirmée ! Le paiement est sécurisé par Diayko. Vous serez notifié(e) dès l'expédition.`,
       },
     });
   }, [id, item, router]);

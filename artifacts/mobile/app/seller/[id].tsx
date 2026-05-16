@@ -93,12 +93,12 @@ export default function SellerProfileScreen() {
         </View>
         <Text style={styles.title}>Seller identity protected</Text>
         <Text style={styles.subtitle}>
-          On Vinted, every item is sold through our secure marketplace. Seller
-          identities remain private to protect both buyers and sellers.
+          Sur Diayko, chaque article est vendu via notre marketplace sécurisée. Les
+          identités des vendeurs restent privées pour protéger acheteurs et vendeurs.
         </Text>
         <View style={styles.badge}>
           <Feather name="check-circle" size={14} color={colors.primary} />
-          <Text style={styles.badgeText}>All sellers are verified by Vinted</Text>
+          <Text style={styles.badgeText}>Tous les vendeurs sont vérifiés par Diayko</Text>
         </View>
         <TouchableOpacity
           style={styles.goBackBtn}

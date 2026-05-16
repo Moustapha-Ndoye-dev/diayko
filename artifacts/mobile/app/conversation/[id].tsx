@@ -21,9 +21,9 @@ import { AsyncState } from "@/types";
 import { censorMessage, hasCensoredContent } from "@/lib/censor";
 
 // ── Platform identity ────────────────────────────────────────────────────────
-const PLATFORM_NAME = "Vinted";
-const PLATFORM_AVATAR = "V";
-const PLATFORM_STATUS = "Official support · Usually replies in minutes";
+const PLATFORM_NAME = "Diayko";
+const PLATFORM_AVATAR = "D";
+const PLATFORM_STATUS = "Support officiel · Répond en quelques minutes";
 
 interface ChatMessage extends ApiMessage {
   isOwn: boolean;
@@ -78,7 +78,7 @@ export default function ConversationScreen() {
         id: "sys-welcome",
         conversationId: id,
         senderId: "platform",
-        text: "Bonjour 👋 Bienvenue chez Vinted. Comment pouvons-nous vous aider ?",
+        text: "Bonjour 👋 Bienvenue chez Diayko. Comment pouvons-nous vous aider ?",
         createdAt: new Date(Date.now() - 2000).toISOString(),
         isOwn: false,
         isSystem: true,
@@ -336,7 +336,7 @@ export default function ConversationScreen() {
       </View>
       {msg.wasCensored && (
         <Text style={[styles.censorNotice, msg.isOwn && styles.ownCensorNotice]}>
-          ⚠️ Informations de contact supprimées — échangez uniquement via Vinted.
+          ⚠️ Informations de contact supprimées — échangez uniquement via Diayko.
         </Text>
       )}
       <Text style={[styles.timeText, msg.isOwn ? styles.ownTimeText : undefined]}>

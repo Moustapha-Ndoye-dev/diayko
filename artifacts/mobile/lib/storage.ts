@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ONBOARDING_KEY = "@vinted/onboarding_complete";
-const INTERESTS_KEY = "@vinted/interests";
-const SELLER_STATUS_KEY = "@vinted/seller_status";
+const ONBOARDING_KEY = "@diayko/onboarding_complete";
+const INTERESTS_KEY = "@diayko/interests";
+const SELLER_STATUS_KEY = "@diayko/seller_status";
 
 export type SellerStatus = "none" | "pending" | "approved";
 

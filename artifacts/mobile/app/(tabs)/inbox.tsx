@@ -28,9 +28,9 @@ function formatRelativeTime(iso: string): string {
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=80&q=60";
 
-// All conversations show "Vinted" as the contact to preserve seller anonymity.
-const PLATFORM_NAME = "Vinted";
-const PLATFORM_AVATAR = "V";
+// All conversations show "Diayko" as the contact to preserve seller anonymity.
+const PLATFORM_NAME = "Diayko";
+const PLATFORM_AVATAR = "D";
 const PLATFORM_AVATAR_COLOR = "#09B1BA";
 
 export default function InboxScreen() {
@@ -215,7 +215,7 @@ export default function InboxScreen() {
           <EmptyState
             icon="message-circle"
             title="No messages yet"
-            description="Buy an item or ask a question to start a conversation with Vinted."
+            description="Achetez un article ou posez une question pour démarrer une conversation avec Diayko."
           />
         }
         ListFooterComponent={<View style={styles.footer} />}

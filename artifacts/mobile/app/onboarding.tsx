@@ -18,6 +18,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { storage } from "@/lib/storage";
 import { INTERESTS } from "@/data/interests";
+import { DiaykoLogo } from "@/components/DiaykoLogo";
 
 const { width, height } = Dimensions.get("window");
 const BRAND = "#09B1BA";
@@ -137,7 +138,7 @@ export default function OnboardingScreen() {
           >
             <Feather name="chevron-left" size={22} color="#1a1a1a" />
           </TouchableOpacity>
-          <Text style={styles.logo}>vinted</Text>
+          <DiaykoLogo size={30} variant="full" wordmarkColor="#1a1a1a" />
           <TouchableOpacity
             onPress={handleSkip}
             style={styles.skipBtn}
@@ -250,7 +251,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <View style={[styles.headerRow, { paddingTop: topPad + 12 }]}>
         <View style={{ width: 36 }} />
-        <Text style={[styles.logo, { color: accent }]}>vinted</Text>
+        <DiaykoLogo size={30} variant="full" wordmarkColor={accent} />
         <TouchableOpacity
           onPress={handleSkip}
           style={styles.skipBtn}

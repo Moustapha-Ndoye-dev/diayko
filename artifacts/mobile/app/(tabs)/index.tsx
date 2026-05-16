@@ -23,6 +23,7 @@ import { CATEGORIES } from "@/data/mockData";
 import { INTERESTS } from "@/data/interests";
 import { storage } from "@/lib/storage";
 import { Item } from "@/types";
+import { DiaykoLogo } from "@/components/DiaykoLogo";
 
 export default function BrowseScreen() {
   const colors = useColors();
@@ -155,7 +156,7 @@ export default function BrowseScreen() {
     <View>
       <View style={styles.header}>
         <View style={styles.topRow}>
-          <Text style={styles.logo}>vinted</Text>
+          <DiaykoLogo size={34} variant="full" wordmarkColor={colors.foreground} />
           <View style={styles.iconBtnRow}>
             <TouchableOpacity
               style={styles.iconBtn}
