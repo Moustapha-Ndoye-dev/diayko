@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import { FeaturedSellers } from "@/components/FeaturedSellers";
 import { SkeletonGrid } from "@/components/SkeletonCard";
 import { EmptyState } from "@/components/EmptyState";
 import { CATEGORIES } from "@/data/mockData";
+import { INTERESTS } from "@/data/interests";
+import { storage } from "@/lib/storage";
 import { Item } from "@/types";
 
 export default function BrowseScreen() {
@@ -28,13 +30,34 @@ export default function BrowseScreen() {
   const router = useRouter();
   const { items, isLoading } = useApp();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [interestCategories, setInterestCategories] = useState<string[]>([]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  useEffect(() => {
+    storage.interests.get().then((ids) => {
+      const cats = Array.from(
+        new Set(
+          ids
+            .map((id) => INTERESTS.find((i) => i.id === id)?.category)
+            .filter((c): c is string => Boolean(c)),
+        ),
+      );
+      setInterestCategories(cats);
+    });
+  }, []);
+
   const filtered = useMemo(() => {
-    if (selectedCategory === "all") return items;
+    // When "All" is selected, prioritise items matching the user's interests
+    // (without hiding the rest — interest matches just come first).
+    if (selectedCategory === "all") {
+      if (interestCategories.length === 0) return items;
+      const matches = items.filter((i) => interestCategories.includes(i.category));
+      const rest = items.filter((i) => !interestCategories.includes(i.category));
+      return [...matches, ...rest];
+    }
     return items.filter((item) => item.category === selectedCategory);
-  }, [items, selectedCategory]);
+  }, [items, selectedCategory, interestCategories]);
 
   const pairs = useMemo(() => {
     const result: [Item, Item | undefined][] = [];
@@ -174,7 +197,11 @@ export default function BrowseScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {selectedCategory === "all" ? "Latest listings" : categoryLabel}
+          {selectedCategory === "all"
+            ? interestCategories.length > 0
+              ? "For you"
+              : "Latest listings"
+            : categoryLabel}
         </Text>
         {!isLoading && (
           <View style={styles.countBadge}>

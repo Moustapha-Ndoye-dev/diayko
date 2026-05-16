@@ -8,8 +8,12 @@ import {
 } from "@workspace/db/schema";
 import { eq, ilike, and, gte, lte, sql, desc, or } from "drizzle-orm";
 import { z } from "zod";
+import { asyncHandler } from "../lib/asyncHandler";
+import { HttpError } from "../middlewares/errorHandler";
 
 const router: IRouter = Router();
+
+const idParamsSchema = z.object({ id: z.string().uuid() });
 
 const listQuerySchema = z.object({
   category: z.string().optional(),
@@ -28,192 +32,192 @@ async function attachImages(items: (typeof itemsTable.$inferSelect)[]) {
   const imgs = await db
     .select()
     .from(itemImagesTable)
-    .where(sql`${itemImagesTable.itemId} = ANY(${sql.raw(`ARRAY[${ids.map((id) => `'${id}'`).join(",")}]::uuid[]`)})`)
+    .where(
+      sql`${itemImagesTable.itemId} = ANY(${sql.raw(
+        `ARRAY[${ids.map((id) => `'${id}'`).join(",")}]::uuid[]`,
+      )})`,
+    )
     .orderBy(itemImagesTable.position);
   const byItem: Record<string, string[]> = {};
   for (const img of imgs) {
     if (!byItem[img.itemId]) byItem[img.itemId] = [];
-    byItem[img.itemId].push(img.url);
+    byItem[img.itemId]!.push(img.url);
   }
   return items.map((i) => ({ ...i, images: byItem[i.id] ?? [] }));
 }
 
-router.get("/items", async (req, res) => {
-  const parsed = listQuerySchema.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const { category, q, size, condition, minPrice, maxPrice, page, limit } = parsed.data;
+router.get(
+  "/items",
+  asyncHandler(async (req, res) => {
+    const { category, q, size, condition, minPrice, maxPrice, page, limit } =
+      listQuerySchema.parse(req.query);
 
-  const filters = [];
-  if (category) filters.push(eq(itemsTable.category, category));
-  if (size) filters.push(eq(itemsTable.size, size));
-  if (condition) filters.push(eq(itemsTable.condition, condition));
-  if (minPrice !== undefined) filters.push(gte(itemsTable.price, String(minPrice)));
-  if (maxPrice !== undefined) filters.push(lte(itemsTable.price, String(maxPrice)));
-  if (q) {
-    filters.push(
-      or(
-        ilike(itemsTable.title, `%${q}%`),
-        ilike(itemsTable.brand, `%${q}%`),
-        ilike(itemsTable.description, `%${q}%`)
-      )
-    );
-  }
+    const filters = [];
+    if (category) filters.push(eq(itemsTable.category, category));
+    if (size) filters.push(eq(itemsTable.size, size));
+    if (condition) filters.push(eq(itemsTable.condition, condition));
+    if (minPrice !== undefined) filters.push(gte(itemsTable.price, String(minPrice)));
+    if (maxPrice !== undefined) filters.push(lte(itemsTable.price, String(maxPrice)));
+    if (q) {
+      filters.push(
+        or(
+          ilike(itemsTable.title, `%${q}%`),
+          ilike(itemsTable.brand, `%${q}%`),
+          ilike(itemsTable.description, `%${q}%`),
+        ),
+      );
+    }
 
-  const where = filters.length > 0 ? and(...filters) : undefined;
+    const where = filters.length > 0 ? and(...filters) : undefined;
 
-  const [countResult, rows] = await Promise.all([
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(itemsTable)
-      .where(where),
-    db
+    const [countResult, rows] = await Promise.all([
+      db.select({ count: sql<number>`count(*)::int` }).from(itemsTable).where(where),
+      db
+        .select()
+        .from(itemsTable)
+        .where(where)
+        .orderBy(desc(itemsTable.createdAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+    ]);
+
+    const total = countResult[0]?.count ?? 0;
+    const items = await attachImages(rows);
+
+    res.json({ items, total, page, limit, hasMore: page * limit < total });
+  }),
+);
+
+router.get(
+  "/items/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = idParamsSchema.parse(req.params);
+    const rows = await db
       .select()
       .from(itemsTable)
-      .where(where)
-      .orderBy(desc(itemsTable.createdAt))
-      .limit(limit)
-      .offset((page - 1) * limit),
-  ]);
+      .leftJoin(usersTable, eq(itemsTable.sellerId, usersTable.id))
+      .where(eq(itemsTable.id, id))
+      .limit(1);
 
-  const total = countResult[0]?.count ?? 0;
-  const items = await attachImages(rows);
+    if (rows.length === 0) {
+      throw new HttpError(404, "Item not found");
+    }
 
-  res.json({ items, total, page, limit, hasMore: page * limit < total });
+    const { items, users } = rows[0]!;
+    const [withImages] = await attachImages([items]);
+    res.json({ ...withImages, seller: users });
+  }),
+);
+
+const createBodySchema = z.object({
+  title: z.string().min(2),
+  brand: z.string().min(1),
+  price: z.number().positive(),
+  originalPrice: z.number().positive().optional().nullable(),
+  size: z.string().min(1),
+  condition: z.enum(["New with tags", "Like new", "Good", "Fair"]),
+  category: z.string().min(1),
+  description: z.string(),
+  color: z.string().optional().nullable(),
+  sellerId: z.string().uuid(),
+  images: z.array(z.string()).min(1),
 });
 
-router.get("/items/:id", async (req, res) => {
-  const rows = await db
-    .select()
-    .from(itemsTable)
-    .leftJoin(usersTable, eq(itemsTable.sellerId, usersTable.id))
-    .where(eq(itemsTable.id, req.params.id))
-    .limit(1);
+router.post(
+  "/items",
+  asyncHandler(async (req, res) => {
+    const { images, ...data } = createBodySchema.parse(req.body);
 
-  if (rows.length === 0) {
-    res.status(404).json({ error: "Item not found" });
-    return;
-  }
+    const [item] = await db
+      .insert(itemsTable)
+      .values({
+        ...data,
+        price: String(data.price),
+        originalPrice: data.originalPrice != null ? String(data.originalPrice) : null,
+      })
+      .returning();
 
-  const { items, users } = rows[0];
-  const withImages = await attachImages([items]);
-  res.json({ ...withImages[0], seller: users });
-});
+    if (!item) throw new HttpError(500, "Failed to create item");
 
-router.post("/items", async (req, res) => {
-  const bodySchema = z.object({
-    title: z.string().min(2),
-    brand: z.string().min(1),
-    price: z.number().positive(),
-    originalPrice: z.number().positive().optional().nullable(),
-    size: z.string().min(1),
-    condition: z.enum(["New with tags", "Like new", "Good", "Fair"]),
-    category: z.string().min(1),
-    description: z.string(),
-    color: z.string().optional().nullable(),
-    sellerId: z.string().uuid(),
-    images: z.array(z.string()).min(1),
-  });
+    await db.insert(itemImagesTable).values(
+      images.map((url, position) => ({ itemId: item.id, url, position })),
+    );
 
-  const parsed = bodySchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+    res.status(201).json({ ...item, images });
+  }),
+);
 
-  const { images, ...data } = parsed.data;
+router.delete(
+  "/items/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = idParamsSchema.parse(req.params);
+    const result = await db
+      .delete(itemsTable)
+      .where(eq(itemsTable.id, id))
+      .returning({ id: itemsTable.id });
 
-  const [item] = await db
-    .insert(itemsTable)
-    .values({
-      ...data,
-      price: String(data.price),
-      originalPrice: data.originalPrice != null ? String(data.originalPrice) : null,
-    })
-    .returning();
+    if (result.length === 0) throw new HttpError(404, "Item not found");
+    res.status(204).send();
+  }),
+);
 
-  await db.insert(itemImagesTable).values(
-    images.map((url, position) => ({ itemId: item.id, url, position }))
-  );
-
-  res.status(201).json({ ...item, images });
-});
-
-router.delete("/items/:id", async (req, res) => {
-  const result = await db
-    .delete(itemsTable)
-    .where(eq(itemsTable.id, req.params.id))
-    .returning({ id: itemsTable.id });
-
-  if (result.length === 0) {
-    res.status(404).json({ error: "Item not found" });
-    return;
-  }
-
-  res.status(204).send();
-});
-
-router.post("/items/:id/view", async (req, res) => {
-  const [updated] = await db
-    .update(itemsTable)
-    .set({ viewsCount: sql`${itemsTable.viewsCount} + 1` })
-    .where(eq(itemsTable.id, req.params.id))
-    .returning({ viewsCount: itemsTable.viewsCount });
-
-  if (!updated) {
-    res.status(404).json({ error: "Item not found" });
-    return;
-  }
-
-  res.json({ viewsCount: updated.viewsCount });
-});
-
-router.post("/items/:id/like", async (req, res) => {
-  const bodySchema = z.object({ userId: z.string().uuid() });
-  const parsed = bodySchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const { userId } = parsed.data;
-  const itemId = req.params.id;
-
-  const existing = await db
-    .select()
-    .from(likesTable)
-    .where(and(eq(likesTable.userId, userId), eq(likesTable.itemId, itemId)))
-    .limit(1);
-
-  let liked: boolean;
-
-  if (existing.length > 0) {
-    await db
-      .delete(likesTable)
-      .where(and(eq(likesTable.userId, userId), eq(likesTable.itemId, itemId)));
-    await db
+router.post(
+  "/items/:id/view",
+  asyncHandler(async (req, res) => {
+    const { id } = idParamsSchema.parse(req.params);
+    const [updated] = await db
       .update(itemsTable)
-      .set({ likesCount: sql`GREATEST(0, ${itemsTable.likesCount} - 1)` })
-      .where(eq(itemsTable.id, itemId));
-    liked = false;
-  } else {
-    await db.insert(likesTable).values({ userId, itemId });
-    await db
-      .update(itemsTable)
-      .set({ likesCount: sql`${itemsTable.likesCount} + 1` })
-      .where(eq(itemsTable.id, itemId));
-    liked = true;
-  }
+      .set({ viewsCount: sql`${itemsTable.viewsCount} + 1` })
+      .where(eq(itemsTable.id, id))
+      .returning({ viewsCount: itemsTable.viewsCount });
 
-  const [item] = await db
-    .select({ likesCount: itemsTable.likesCount })
-    .from(itemsTable)
-    .where(eq(itemsTable.id, itemId))
-    .limit(1);
+    if (!updated) throw new HttpError(404, "Item not found");
+    res.json({ viewsCount: updated.viewsCount });
+  }),
+);
 
-  res.json({ liked, likesCount: item?.likesCount ?? 0 });
-});
+const likeBodySchema = z.object({ userId: z.string().uuid() });
+
+router.post(
+  "/items/:id/like",
+  asyncHandler(async (req, res) => {
+    const { userId } = likeBodySchema.parse(req.body);
+    const { id: itemId } = idParamsSchema.parse(req.params);
+
+    const existing = await db
+      .select()
+      .from(likesTable)
+      .where(and(eq(likesTable.userId, userId), eq(likesTable.itemId, itemId)))
+      .limit(1);
+
+    let liked: boolean;
+
+    if (existing.length > 0) {
+      await db
+        .delete(likesTable)
+        .where(and(eq(likesTable.userId, userId), eq(likesTable.itemId, itemId)));
+      await db
+        .update(itemsTable)
+        .set({ likesCount: sql`GREATEST(0, ${itemsTable.likesCount} - 1)` })
+        .where(eq(itemsTable.id, itemId));
+      liked = false;
+    } else {
+      await db.insert(likesTable).values({ userId, itemId });
+      await db
+        .update(itemsTable)
+        .set({ likesCount: sql`${itemsTable.likesCount} + 1` })
+        .where(eq(itemsTable.id, itemId));
+      liked = true;
+    }
+
+    const [item] = await db
+      .select({ likesCount: itemsTable.likesCount })
+      .from(itemsTable)
+      .where(eq(itemsTable.id, itemId))
+      .limit(1);
+
+    res.json({ liked, likesCount: item?.likesCount ?? 0 });
+  }),
+);
 
 export default router;
