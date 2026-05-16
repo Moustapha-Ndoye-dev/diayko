@@ -210,7 +210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : item,
         ),
       );
-      api.items.like(itemId, user.id).catch(() => {
+      api.items.like(itemId).catch(() => {
         refreshFavorites();
       });
     },

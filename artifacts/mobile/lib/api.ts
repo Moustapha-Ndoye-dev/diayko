@@ -159,16 +159,14 @@ export const api = {
       category: string;
       description: string;
       color?: string | null;
-      sellerId: string;
       images: string[];
     }) => request<ApiItem>("/items", { method: "POST", body: JSON.stringify(body) }),
     delete: (id: string) => request<void>(`/items/${id}`, { method: "DELETE" }),
     view: (id: string) =>
       request<{ viewsCount: number }>(`/items/${id}/view`, { method: "POST" }),
-    like: (id: string, userId: string) =>
+    like: (id: string) =>
       request<{ liked: boolean; likesCount: number }>(`/items/${id}/like`, {
         method: "POST",
-        body: JSON.stringify({ userId }),
       }),
   },
   users: {

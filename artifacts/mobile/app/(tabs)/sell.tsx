@@ -46,7 +46,7 @@ export default function SellScreen() {
 function SellForm() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { addListing, currentUser } = useApp();
+  const { addListing } = useApp();
   const [form, setForm] = useState<SellFormData>({
     title: "",
     description: "",
@@ -86,7 +86,6 @@ function SellForm() {
         category: form.category,
         description: form.description.trim() || "Aucune description fournie.",
         color: form.color || null,
-        sellerId: currentUser.id === "local-user" ? "00000000-0000-0000-0000-000000000000" : currentUser.id,
         images: [],
       });
       addListing(toItem(apiItem));

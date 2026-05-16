@@ -10,6 +10,7 @@ import { eq, ilike, and, gte, lte, sql, desc, or } from "drizzle-orm";
 import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { HttpError } from "../middlewares/errorHandler";
+import { requireAuth } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 
@@ -119,19 +120,21 @@ const createBodySchema = z.object({
   category: z.string().min(1),
   description: z.string(),
   color: z.string().optional().nullable(),
-  sellerId: z.string().uuid(),
   images: z.array(z.string()).min(1),
 });
 
 router.post(
   "/items",
+  requireAuth,
   asyncHandler(async (req, res) => {
     const { images, ...data } = createBodySchema.parse(req.body);
+    const sellerId = req.user!.id;
 
     const [item] = await db
       .insert(itemsTable)
       .values({
         ...data,
+        sellerId,
         price: String(data.price),
         originalPrice: data.originalPrice != null ? String(data.originalPrice) : null,
       })
@@ -149,14 +152,22 @@ router.post(
 
 router.delete(
   "/items/:id",
+  requireAuth,
   asyncHandler(async (req, res) => {
     const { id } = idParamsSchema.parse(req.params);
-    const result = await db
-      .delete(itemsTable)
-      .where(eq(itemsTable.id, id))
-      .returning({ id: itemsTable.id });
 
-    if (result.length === 0) throw new HttpError(404, "Item not found");
+    const [existing] = await db
+      .select({ sellerId: itemsTable.sellerId })
+      .from(itemsTable)
+      .where(eq(itemsTable.id, id))
+      .limit(1);
+
+    if (!existing) throw new HttpError(404, "Item not found");
+    if (existing.sellerId !== req.user!.id) {
+      throw new HttpError(403, "Forbidden");
+    }
+
+    await db.delete(itemsTable).where(eq(itemsTable.id, id));
     res.status(204).send();
   }),
 );
@@ -178,11 +189,9 @@ router.post(
 
 router.post(
   "/items/:id/like",
+  requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { id: itemId } = idParamsSchema.parse(req.params);
 
     const existing = await db

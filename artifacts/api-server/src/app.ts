@@ -6,7 +6,6 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
-import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app: Express = express();
 
