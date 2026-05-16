@@ -142,7 +142,7 @@ export default function BrowseScreen() {
     },
     row: { flexDirection: "row", gap: 12, marginBottom: 12 },
     grid: { paddingHorizontal: 12 },
-    footer: { height: Platform.OS === "web" ? 34 : 16 },
+    footer: { height: Platform.OS === "web" ? 34 : insets.bottom + 65 },
   });
 
   const categoryLabel =
@@ -160,19 +160,19 @@ export default function BrowseScreen() {
           <View style={styles.iconBtnRow}>
             <TouchableOpacity
               style={styles.iconBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Favoris"
+            >
+              <Feather name="heart" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconBtn}
               onPress={() => router.push("/notifications")}
               accessibilityRole="button"
               accessibilityLabel="Notifications"
             >
               <Feather name="bell" size={18} color={colors.foreground} />
               <View style={styles.notifDot} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              accessibilityRole="button"
-              accessibilityLabel="Articles sauvegardés"
-            >
-              <Feather name="bookmark" size={18} color={colors.foreground} />
             </TouchableOpacity>
           </View>
         </View>
