@@ -11,6 +11,7 @@ import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { HttpError } from "../middlewares/errorHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
+import { itemCreateRateLimit, likeRateLimit } from "../middlewares/rateLimiter.js";
 
 const router: IRouter = Router();
 
@@ -125,6 +126,7 @@ const createBodySchema = z.object({
 
 router.post(
   "/items",
+  itemCreateRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
     const { images, ...data } = createBodySchema.parse(req.body);
@@ -189,6 +191,7 @@ router.post(
 
 router.post(
   "/items/:id/like",
+  likeRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
     const userId = req.user!.id;

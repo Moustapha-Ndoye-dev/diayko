@@ -9,6 +9,7 @@ import {
 } from "@workspace/db/schema";
 import { eq, or, desc, sql } from "drizzle-orm";
 import { z } from "zod";
+import { conversationCreateRateLimit, messageSendRateLimit } from "../middlewares/rateLimiter.js";
 
 const router: IRouter = Router();
 
@@ -52,7 +53,7 @@ router.get("/conversations", async (req, res) => {
       ? db
           .select()
           .from(usersTable)
-          .where(sql`${usersTable.id} = ANY(${sql.raw(`ARRAY[${otherUserIds.map((id) => `'${id}'`).join(",")}]::text[]`)})`)
+          .where(sql`${usersTable.id} = ANY(${sql.raw(`ARRAY[${otherUserIds.map((id) => `'${id}'`).join(",")}]::uuid[]`)})`)
       : Promise.resolve([]),
     itemIds.length > 0
       ? db
@@ -97,7 +98,7 @@ router.get("/conversations", async (req, res) => {
  * is never read from the request body. If itemId is supplied, sellerId is
  * verified against the item's actual seller.
  */
-router.post("/conversations", async (req, res) => {
+router.post("/conversations", conversationCreateRateLimit, async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
     return;
@@ -215,7 +216,7 @@ router.get("/conversations/:id/messages", async (req, res) => {
  * Sends a message. The sender is derived from the authenticated session —
  * any senderId in the body is ignored. The caller must be a participant.
  */
-router.post("/conversations/:id/messages", async (req, res) => {
+router.post("/conversations/:id/messages", messageSendRateLimit, async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Authentication required" });
     return;

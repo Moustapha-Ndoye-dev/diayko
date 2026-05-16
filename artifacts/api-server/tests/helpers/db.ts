@@ -70,7 +70,17 @@ export async function makeSession(userId: string): Promise<string> {
   const sid = crypto.randomBytes(32).toString("hex");
   await db.insert(sessionsTable).values({
     sid,
-    sess: { userId, access_token: "test" } as unknown as Record<string, unknown>,
+    sess: {
+      user: {
+        id: userId,
+        email: null,
+        firstName: null,
+        lastName: null,
+        profileImageUrl: null,
+        sellerStatus: "none",
+      },
+      access_token: "test",
+    } as unknown as Record<string, unknown>,
     expire: new Date(Date.now() + 60 * 60 * 1000),
   });
   return sid;

@@ -19,6 +19,7 @@ import {
   ISSUER_URL,
   type SessionData,
 } from "../lib/auth.js";
+import { authRateLimit } from "../middlewares/rateLimiter.js";
 
 const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 const router: IRouter = Router();
@@ -124,7 +125,7 @@ router.get("/auth/user", (req: Request, res: Response) => {
 
 // ── Browser OIDC flow ──────────────────────────────────────────────────────────
 
-router.get("/login", async (req: Request, res: Response) => {
+router.get("/login", authRateLimit, async (req: Request, res: Response) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
   const returnTo = getSafeReturnTo(req.query.returnTo);
@@ -219,7 +220,7 @@ router.get("/logout", async (req: Request, res: Response) => {
 
 // ── Mobile OIDC flow ───────────────────────────────────────────────────────────
 
-router.post("/mobile-auth/token-exchange", async (req: Request, res: Response) => {
+router.post("/mobile-auth/token-exchange", authRateLimit, async (req: Request, res: Response) => {
   const parsed = ExchangeMobileAuthorizationCodeBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Missing or invalid required parameters" });

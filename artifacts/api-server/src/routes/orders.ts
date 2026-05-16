@@ -15,6 +15,7 @@ import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { HttpError } from "../middlewares/errorHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
+import { orderCreateRateLimit } from "../middlewares/rateLimiter.js";
 
 const router: IRouter = Router();
 const idParams = z.object({ id: z.string().uuid() });
@@ -145,6 +146,7 @@ const createBody = z.object({
 
 router.post(
   "/orders",
+  orderCreateRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
     if (!req.isAuthenticated()) {

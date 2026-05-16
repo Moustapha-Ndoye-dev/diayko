@@ -1,23 +1,25 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../src/app";
-import { resetDb, makeUser, makeItem } from "./helpers/db";
+import { resetDb, makeUser, makeItem, makeSession, bearer } from "./helpers/db";
 
 describe("Users API", () => {
   beforeEach(resetDb);
 
-  it("POST /api/users creates a user", async () => {
+  it("POST /api/users updates the authenticated user's bio", async () => {
+    const u = await makeUser("Aïssa Sow");
+    const sid = await makeSession(u.id);
     const res = await request(app)
       .post("/api/users")
-      .send({ name: "Aïssa Sow", bio: "Bonjour" });
-    expect(res.status).toBe(201);
-    expect(res.body.name).toBe("Aïssa Sow");
+      .set("Authorization", bearer(sid))
+      .send({ bio: "Bonjour" });
+    expect(res.status).toBe(200);
     expect(res.body.bio).toBe("Bonjour");
   });
 
-  it("POST /api/users rejects too-short name", async () => {
-    const res = await request(app).post("/api/users").send({ name: "A" });
-    expect(res.status).toBe(400);
+  it("POST /api/users rejects unauthenticated requests", async () => {
+    const res = await request(app).post("/api/users").send({ bio: "Salut" });
+    expect(res.status).toBe(401);
   });
 
   it("GET /api/users/:id returns the user", async () => {

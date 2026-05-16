@@ -3,6 +3,7 @@ import request from "supertest";
 import app from "../src/app";
 import { resetDb, makeUser, makeItem, makeSession, bearer } from "./helpers/db";
 
+
 describe("GET /api/items", () => {
   beforeEach(async () => {
     await resetDb();
@@ -86,8 +87,10 @@ describe("POST /api/items", () => {
 
   it("creates an item with images", async () => {
     const seller = await makeUser("Seller");
+    const sid = await makeSession(seller.id);
     const res = await request(app)
       .post("/api/items")
+      .set("Authorization", bearer(sid))
       .send({
         title: "New listing",
         brand: "Diayko",
@@ -96,7 +99,6 @@ describe("POST /api/items", () => {
         condition: "Good",
         category: "women",
         description: "A new item.",
-        sellerId: seller.id,
         images: ["https://example.com/a.jpg", "https://example.com/b.jpg"],
       });
     expect(res.status).toBe(201);
@@ -106,8 +108,10 @@ describe("POST /api/items", () => {
 
   it("rejects invalid condition", async () => {
     const seller = await makeUser("Seller");
+    const sid = await makeSession(seller.id);
     const res = await request(app)
       .post("/api/items")
+      .set("Authorization", bearer(sid))
       .send({
         title: "Bad listing",
         brand: "X",
@@ -116,7 +120,6 @@ describe("POST /api/items", () => {
         condition: "Trashed",
         category: "women",
         description: "",
-        sellerId: seller.id,
         images: ["https://example.com/a.jpg"],
       });
     expect(res.status).toBe(400);
@@ -124,8 +127,10 @@ describe("POST /api/items", () => {
 
   it("rejects missing images", async () => {
     const seller = await makeUser("Seller");
+    const sid = await makeSession(seller.id);
     const res = await request(app)
       .post("/api/items")
+      .set("Authorization", bearer(sid))
       .send({
         title: "Bad listing",
         brand: "X",
@@ -134,7 +139,6 @@ describe("POST /api/items", () => {
         condition: "Good",
         category: "women",
         description: "",
-        sellerId: seller.id,
         images: [],
       });
     expect(res.status).toBe(400);
@@ -182,8 +186,9 @@ describe("DELETE /api/items/:id", () => {
 
   it("deletes an item and returns 204", async () => {
     const seller = await makeUser("Seller");
+    const sid = await makeSession(seller.id);
     const item = await makeItem(seller.id);
-    const del = await request(app).delete(`/api/items/${item.id}`);
+    const del = await request(app).delete(`/api/items/${item.id}`).set("Authorization", bearer(sid));
     expect(del.status).toBe(204);
     const get = await request(app).get(`/api/items/${item.id}`);
     expect(get.status).toBe(404);

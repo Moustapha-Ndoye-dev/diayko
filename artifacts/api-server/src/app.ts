@@ -9,6 +9,11 @@ import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 
 const app: Express = express();
 
+// Trust the reverse-proxy sitting in front (Replit / nginx). This makes
+// req.ip resolve to the real client IP from X-Forwarded-For instead of the
+// proxy address, which is required for per-client rate-limit keys.
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
