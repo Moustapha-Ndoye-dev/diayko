@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { CATEGORIES } from "@/data/mockData";
+import { CATEGORY_ICON_MAP } from "@/components/CategoryIcons";
 
 interface TopCategoriesProps {
   selected?: string;
@@ -123,11 +123,10 @@ export function TopCategories({ selected, onSelect }: TopCategoriesProps) {
                   isSelected && styles.iconCircleSelected,
                 ]}
               >
-                <Ionicons
-                  name={cat.icon as keyof typeof Ionicons.glyphMap}
-                  size={28}
-                  color={iconColor}
-                />
+                {(() => {
+                  const IconComp = CATEGORY_ICON_MAP[cat.id];
+                  return IconComp ? <IconComp color={iconColor} size={30} /> : null;
+                })()}
               </View>
               <Text
                 style={[styles.name, isSelected && styles.nameSelected]}
