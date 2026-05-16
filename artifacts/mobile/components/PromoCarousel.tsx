@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 
 const { width } = Dimensions.get("window");
@@ -70,6 +71,7 @@ const PROMO_SLIDES: PromoSlide[] = [
 
 export function PromoCarousel() {
   const colors = useColors();
+  const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [active, setActive] = useState(0);
   const autoRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -213,6 +215,7 @@ export function PromoCarousel() {
             activeOpacity={0.92}
             accessibilityRole="button"
             accessibilityLabel={`${slide.title}, ${slide.subtitle}`}
+            onPress={() => router.push(`/promotion/${slide.id}` as never)}
           >
             <Image
               source={{ uri: slide.image }}

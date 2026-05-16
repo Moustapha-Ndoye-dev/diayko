@@ -218,7 +218,7 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="user"
             label="Modifier le profil"
-            onPress={() => router.back()}
+            onPress={() => router.push("/edit-profile")}
           />
           <SettingsItem
             icon="mail"
@@ -329,19 +329,12 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="help-circle"
             label="Centre d'aide"
-            onPress={() =>
-              Alert.alert("Centre d'aide", "📧 support@diayko.sn\n📱 WhatsApp : +221 77 000 00 00\n\nDisponible du lun. au sam., 8h–20h.", [{ text: "OK" }])
-            }
+            onPress={() => router.push("/help")}
           />
           <SettingsItem
             icon="message-circle"
             label="Contacter le support"
-            onPress={() =>
-              Alert.alert("Contacter le support", "Nous vous répondrons dans les 24h.", [
-                { text: "Annuler", style: "cancel" },
-                { text: "Envoyer un message", onPress: () => comingSoon("Messagerie support") },
-              ])
-            }
+            onPress={() => router.push("/help")}
           />
           <SettingsItem
             icon="flag"
@@ -360,18 +353,14 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="file-text"
             label="Conditions d'utilisation"
-            onPress={() =>
-              Alert.alert("Conditions d'utilisation", "En utilisant Diayko vous acceptez nos conditions. Version complète disponible sur diayko.sn/cgu", [{ text: "OK" }])
-            }
+            onPress={() => router.push("/legal/cgu")}
           />
           <SettingsItem
             icon="shield"
             label="Politique de confidentialité"
-            onPress={() =>
-              Alert.alert("Politique de confidentialité", "Vos données sont protégées et ne sont jamais revendues. Consultez diayko.sn/privacy", [{ text: "OK" }])
-            }
+            onPress={() => router.push("/legal/privacy")}
           />
-          <SettingsItem icon="info" label="Licences open source" onPress={() => comingSoon()} />
+          <SettingsItem icon="info" label="Licences open source" onPress={() => router.push("/legal/licenses")} />
         </View>
 
         <SectionHeader title="Actions du compte" />

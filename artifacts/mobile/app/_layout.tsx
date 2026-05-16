@@ -55,6 +55,13 @@ function RootLayoutNav() {
         name="settings"
         options={{ animation: "slide_from_right" }}
       />
+      <Stack.Screen name="favorites" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="deliveries" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="edit-profile" options={{ animation: "slide_from_bottom" }} />
+      <Stack.Screen name="help" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="seller-stats" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="promotion/[id]" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="legal/[slug]" options={{ animation: "slide_from_right" }} />
     </Stack>
   );
 }
