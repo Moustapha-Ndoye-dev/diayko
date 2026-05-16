@@ -17,10 +17,21 @@ import { useApp, toItem } from "@/context/AppContext";
 import { api } from "@/lib/api";
 import { CATEGORIES, SIZES, CONDITIONS } from "@/data/mockData";
 import { SellFormData } from "@/types";
+import { SellerGate } from "@/components/SellerGate";
 
 const COLORS_LIST = ["Black", "White", "Blue", "Red", "Green", "Yellow", "Brown", "Grey", "Multicolor", "Beige"];
 
 export default function SellScreen() {
+  const { sellerStatus } = useApp();
+
+  // Gate: only approved sellers can access the listing form.
+  if (sellerStatus !== "approved") {
+    return <SellerGate />;
+  }
+  return <SellForm />;
+}
+
+function SellForm() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { addListing, currentUser } = useApp();

@@ -9,6 +9,7 @@ import React, {
 import { api, ApiItem, ApiUser } from "@/lib/api";
 import { Item, Seller, Condition, Conversation, ConversationItem } from "@/types";
 import { ApiConversation } from "@/lib/api";
+import { storage, SellerStatus } from "@/lib/storage";
 
 // ─── Adapters ─────────────────────────────────────────────────────────────────
 
@@ -103,6 +104,9 @@ interface AppContextValue {
   isFavorite: (itemId: string) => boolean;
   currentUser: Seller;
   refreshItems: (filters?: ListFilters) => Promise<void>;
+  sellerStatus: SellerStatus;
+  requestSellerAccess: () => Promise<void>;
+  resetSellerStatus: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -126,6 +130,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [myListings, setMyListings] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sellerStatus, setSellerStatus] = useState<SellerStatus>("none");
+
+  useEffect(() => {
+    storage.sellerStatus.get().then(setSellerStatus);
+  }, []);
+
+  // Simulated reviewer: when a request is submitted, auto-approve after ~6s.
+  // Replace with a real backend approval flow when the moderation pipeline ships.
+  useEffect(() => {
+    if (sellerStatus !== "pending") return;
+    const t = setTimeout(async () => {
+      await storage.sellerStatus.set("approved");
+      setSellerStatus("approved");
+    }, 6000);
+    return () => clearTimeout(t);
+  }, [sellerStatus]);
+
+  const requestSellerAccess = useCallback(async () => {
+    await storage.sellerStatus.set("pending");
+    setSellerStatus("pending");
+  }, []);
+
+  const resetSellerStatus = useCallback(async () => {
+    await storage.sellerStatus.set("none");
+    setSellerStatus("none");
+  }, []);
 
   const refreshItems = useCallback(async (filters?: ListFilters) => {
     try {
@@ -192,6 +222,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isFavorite,
         currentUser: CURRENT_USER,
         refreshItems,
+        sellerStatus,
+        requestSellerAccess,
+        resetSellerStatus,
       }}
     >
       {children}

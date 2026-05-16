@@ -7,71 +7,64 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Animated,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useColors } from "@/hooks/useColors";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
-const CARD_HEIGHT = 160;
+const CARD_HEIGHT = 168;
+
+type PromoTag = {
+  label: string;
+  color: string;
+};
 
 interface PromoSlide {
   id: string;
-  type: "sale" | "boosted" | "brand" | "new";
+  tag: PromoTag;
   title: string;
   subtitle: string;
-  badge?: string;
-  badgeColor?: string;
-  image?: any;
-  gradient: [string, string];
+  image: string;
   cta: string;
+  // Gradient applied as an overlay on top of the image for contrast.
+  overlay: [string, string];
 }
 
+// Professional, brand-style copy. No emojis, no "🔥 HOT" — clean typographic tags.
 const PROMO_SLIDES: PromoSlide[] = [
   {
     id: "p1",
-    type: "sale",
-    title: "Summer Sale",
-    subtitle: "Up to 70% off on selected items",
-    badge: "🔥 HOT DEALS",
-    badgeColor: "#ff6b35",
-    image: require("../assets/images/promo1.png"),
-    gradient: ["#09B1BA", "#0d8e96"],
-    cta: "Shop now",
+    tag: { label: "SALE", color: "#1a1a1a" },
+    title: "Summer edit",
+    subtitle: "Up to 70% off selected pieces",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80",
+    cta: "Shop the edit",
+    overlay: ["rgba(0,0,0,0.05)", "rgba(0,0,0,0.55)"],
   },
   {
     id: "p2",
-    type: "boosted",
-    title: "Boosted Items",
-    subtitle: "Top picks from sellers near you",
-    badge: "⚡ FEATURED",
-    badgeColor: "#6c5ce7",
-    image: require("../assets/images/promo2.png"),
-    gradient: ["#1a1a2e", "#16213e"],
+    tag: { label: "EDITORS' PICK", color: "#09B1BA" },
+    title: "Curated for you",
+    subtitle: "Featured listings from trusted sellers",
+    image:
+      "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=900&q=80",
     cta: "Discover",
+    overlay: ["rgba(0,0,0,0.10)", "rgba(0,0,0,0.60)"],
   },
   {
     id: "p3",
-    type: "brand",
-    title: "Vintage Finds",
-    subtitle: "Curated second-hand luxury pieces",
-    badge: "✨ CURATED",
-    badgeColor: "#fdcb6e",
-    image: require("../assets/images/promo3.png"),
-    gradient: ["#fd79a8", "#e84393"],
-    cta: "Browse",
-  },
-  {
-    id: "p4",
-    type: "new",
-    title: "New Arrivals",
-    subtitle: "Fresh listings added in the last 24h",
-    badge: "🆕 NEW",
-    badgeColor: "#00b894",
-    image: null,
-    gradient: ["#00cec9", "#09B1BA"],
-    cta: "See all",
+    tag: { label: "NEW IN", color: "#6c5ce7" },
+    title: "Fresh arrivals",
+    subtitle: "Added in the last 24 hours",
+    image:
+      "https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=900&q=80",
+    cta: "Browse new in",
+    overlay: ["rgba(0,0,0,0.05)", "rgba(0,0,0,0.55)"],
   },
 ];
 
@@ -85,19 +78,21 @@ export function PromoCarousel() {
     autoRef.current = setInterval(() => {
       setActive((prev) => {
         const next = (prev + 1) % PROMO_SLIDES.length;
-        scrollRef.current?.scrollTo({ x: next * CARD_WIDTH, animated: true });
+        scrollRef.current?.scrollTo({ x: next * (CARD_WIDTH + 12), animated: true });
         return next;
       });
-    }, 3500);
+    }, 4500);
   };
 
   useEffect(() => {
     startAuto();
-    return () => { if (autoRef.current) clearInterval(autoRef.current); };
+    return () => {
+      if (autoRef.current) clearInterval(autoRef.current);
+    };
   }, []);
 
-  const handleScroll = (e: any) => {
-    const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / (CARD_WIDTH + 12));
     setActive(idx);
   };
 
@@ -127,69 +122,67 @@ export function PromoCarousel() {
       borderRadius: 16,
       overflow: "hidden",
       marginRight: 12,
-      position: "relative",
+      backgroundColor: "#1a1a1a",
     },
-    image: {
-      position: "absolute",
-      width: "100%",
-      height: "100%",
-    },
-    overlay: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0,
-    },
-    overlayInner: {
+    image: { ...StyleSheet.absoluteFillObject },
+    overlay: { ...StyleSheet.absoluteFillObject },
+    content: {
       flex: 1,
       padding: 18,
       justifyContent: "space-between",
     },
-    badge: {
+    tag: {
       alignSelf: "flex-start",
       paddingHorizontal: 8,
       paddingVertical: 4,
-      borderRadius: 6,
+      borderRadius: 3,
     },
-    badgeText: {
+    tagText: {
       fontSize: 10,
       fontFamily: "Inter_700Bold",
       color: "#fff",
-      letterSpacing: 0.5,
+      letterSpacing: 1.2,
     },
-    textBlock: { gap: 4 },
-    slideTitle: {
-      fontSize: 20,
+    title: {
+      fontSize: 22,
       fontFamily: "Inter_700Bold",
       color: "#fff",
+      letterSpacing: -0.4,
+      marginBottom: 2,
     },
-    slideSubtitle: {
+    subtitle: {
       fontSize: 13,
       fontFamily: "Inter_400Regular",
-      color: "rgba(255,255,255,0.85)",
+      color: "rgba(255,255,255,0.9)",
     },
-    ctaBtn: {
+    bottomRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      marginTop: 10,
+    },
+    cta: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
-      alignSelf: "flex-start",
-      backgroundColor: "rgba(255,255,255,0.2)",
-      borderRadius: 20,
-      paddingHorizontal: 12,
-      paddingVertical: 5,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.35)",
+      gap: 6,
     },
     ctaText: {
-      fontSize: 12,
+      fontSize: 13,
       fontFamily: "Inter_600SemiBold",
       color: "#fff",
+      textDecorationLine: "underline",
+      textDecorationColor: "rgba(255,255,255,0.5)",
+    },
+    pageIndicator: {
+      fontSize: 11,
+      fontFamily: "Inter_500Medium",
+      color: "rgba(255,255,255,0.7)",
+      letterSpacing: 0.5,
     },
     dots: {
       flexDirection: "row",
       justifyContent: "center",
-      marginTop: 10,
+      marginTop: 12,
       gap: 5,
     },
     dot: {
@@ -200,11 +193,10 @@ export function PromoCarousel() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Promotions & Featured</Text>
+      <Text style={styles.label}>Featured</Text>
       <ScrollView
         ref={scrollRef}
         horizontal
-        pagingEnabled={false}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         snapToInterval={CARD_WIDTH + 12}
@@ -217,59 +209,35 @@ export function PromoCarousel() {
         {PROMO_SLIDES.map((slide, i) => (
           <TouchableOpacity
             key={slide.id}
-            style={[
-              styles.slide,
-              { backgroundColor: slide.gradient[0] },
-              i === PROMO_SLIDES.length - 1 && { marginRight: 0 },
-            ]}
-            activeOpacity={0.9}
+            style={styles.slide}
+            activeOpacity={0.92}
+            accessibilityRole="button"
+            accessibilityLabel={`${slide.title}, ${slide.subtitle}`}
           >
-            {slide.image && (
-              <Image
-                source={slide.image}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            )}
-            <View
-              style={[
-                styles.overlay,
-                {
-                  backgroundColor: slide.image
-                    ? "rgba(0,0,0,0.38)"
-                    : "transparent",
-                },
-              ]}
-            >
-              <View style={styles.overlayInner}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  {slide.badge && (
-                    <View style={[styles.badge, { backgroundColor: slide.badgeColor }]}>
-                      <Text style={styles.badgeText}>{slide.badge}</Text>
-                    </View>
-                  )}
-                  <View style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    borderRadius: 12,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.25)",
-                  }}>
-                    <Text style={{ fontSize: 10, color: "#fff", fontFamily: "Inter_500Medium" }}>
-                      {i + 1}/{PROMO_SLIDES.length}
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ gap: 8 }}>
-                  <View style={styles.textBlock}>
-                    <Text style={styles.slideTitle}>{slide.title}</Text>
-                    <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-                  </View>
-                  <TouchableOpacity style={styles.ctaBtn}>
+            <Image
+              source={{ uri: slide.image }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={slide.overlay}
+              style={styles.overlay}
+            />
+            <View style={styles.content}>
+              <View style={[styles.tag, { backgroundColor: slide.tag.color }]}>
+                <Text style={styles.tagText}>{slide.tag.label}</Text>
+              </View>
+              <View>
+                <Text style={styles.title}>{slide.title}</Text>
+                <Text style={styles.subtitle}>{slide.subtitle}</Text>
+                <View style={styles.bottomRow}>
+                  <View style={styles.cta}>
                     <Text style={styles.ctaText}>{slide.cta}</Text>
-                    <Feather name="arrow-right" size={12} color="#fff" />
-                  </TouchableOpacity>
+                    <Feather name="arrow-right" size={14} color="#fff" />
+                  </View>
+                  <Text style={styles.pageIndicator}>
+                    {String(i + 1).padStart(2, "0")} / {String(PROMO_SLIDES.length).padStart(2, "0")}
+                  </Text>
                 </View>
               </View>
             </View>

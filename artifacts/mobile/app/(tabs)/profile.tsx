@@ -17,6 +17,172 @@ import { StarRating } from "@/components/StarRating";
 import { EmptyState } from "@/components/EmptyState";
 import { Item } from "@/types";
 
+interface SellerCardProps {
+  status: "none" | "pending" | "approved";
+  onRequest: () => void;
+}
+
+function SellerStatusCard({ status, onRequest }: SellerCardProps) {
+  const colors = useColors();
+  const router = useRouter();
+
+  if (status === "approved") {
+    return (
+      <View
+        style={{
+          marginHorizontal: 16,
+          marginTop: 12,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: colors.primary,
+          backgroundColor: colors.accent,
+          padding: 14,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: colors.primary,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Feather name="check" size={18} color="#fff" />
+        </View>
+        <View style={{ flex: 1, gap: 1 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: "Inter_700Bold",
+              color: colors.primary,
+            }}
+          >
+            Verified seller
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              fontFamily: "Inter_400Regular",
+              color: colors.primary,
+            }}
+          >
+            You can list items from the Sell tab.
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)/sell")}
+          accessibilityRole="button"
+          accessibilityLabel="Go to Sell"
+        >
+          <Feather name="chevron-right" size={20} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const isPending = status === "pending";
+  return (
+    <View
+      style={{
+        marginHorizontal: 16,
+        marginTop: 12,
+        borderRadius: 12,
+        backgroundColor: "#1a1a1a",
+        padding: 18,
+        gap: 14,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <View
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 19,
+            backgroundColor: "rgba(9,177,186,0.18)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Feather
+            name={isPending ? "clock" : "award"}
+            size={18}
+            color={colors.primary}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "Inter_700Bold",
+              color: colors.primary,
+              letterSpacing: 1.2,
+              marginBottom: 2,
+            }}
+          >
+            {isPending ? "REQUEST PENDING" : "SELLER PROGRAM"}
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: "Inter_700Bold",
+              color: "#fff",
+              letterSpacing: -0.2,
+            }}
+          >
+            {isPending ? "Almost there" : "Become a seller"}
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={{
+          fontSize: 13,
+          fontFamily: "Inter_400Regular",
+          color: "rgba(255,255,255,0.75)",
+          lineHeight: 19,
+        }}
+      >
+        {isPending
+          ? "Your request is being reviewed. We'll notify you once you're approved."
+          : "Unlock listings, seller analytics and direct messaging. Verification is quick."}
+      </Text>
+      <TouchableOpacity
+        onPress={isPending ? () => router.push("/(tabs)/sell") : onRequest}
+        activeOpacity={0.85}
+        style={{
+          backgroundColor: isPending ? "rgba(255,255,255,0.12)" : colors.primary,
+          borderRadius: 8,
+          paddingVertical: 11,
+          alignItems: "center",
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={isPending ? "View request status" : "Submit seller request"}
+      >
+        <Text
+          style={{
+            fontSize: 14,
+            fontFamily: "Inter_600SemiBold",
+            color: "#fff",
+          }}
+        >
+          {isPending ? "View status" : "Submit request"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 type ProfileTab = "listings" | "favourites";
 
 interface MenuItemProps {
@@ -84,14 +250,18 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { currentUser, items, favorites, myListings } = useApp();
+  const { currentUser, items, favorites, sellerStatus, requestSellerAccess } = useApp();
   const [activeTab, setActiveTab] = useState<ProfileTab>("listings");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : 0;
 
+  // Non-sellers cannot have listings — force the Favourites tab.
+  const effectiveTab: ProfileTab =
+    sellerStatus === "approved" ? activeTab : "favourites";
+
   const displayItems =
-    activeTab === "listings"
+    effectiveTab === "listings"
       ? items.filter((item) => item.seller.id === currentUser.id)
       : items.filter((item) => favorites.has(item.id));
 
@@ -280,6 +450,8 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      <SellerStatusCard status={sellerStatus} onRequest={requestSellerAccess} />
+
       <View style={styles.menuSection}>
         <MenuItem
           icon="package"
@@ -291,6 +463,21 @@ export default function ProfileScreen() {
           label="Shipments"
           onPress={() => {}}
         />
+        {sellerStatus === "approved" && (
+          <>
+            <MenuItem
+              icon="bar-chart-2"
+              label="Seller analytics"
+              badge="NEW"
+              onPress={() => {}}
+            />
+            <MenuItem
+              icon="dollar-sign"
+              label="Payouts & earnings"
+              onPress={() => {}}
+            />
+          </>
+        )}
         <MenuItem
           icon="credit-card"
           label="Wallet"
@@ -310,7 +497,10 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.tabRow}>
-        {(["listings", "favourites"] as ProfileTab[]).map((tab) => (
+        {(sellerStatus === "approved"
+          ? (["listings", "favourites"] as ProfileTab[])
+          : (["favourites"] as ProfileTab[])
+        ).map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[
@@ -376,14 +566,14 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <EmptyState
-            icon={activeTab === "listings" ? "shopping-bag" : "heart"}
+            icon={effectiveTab === "listings" ? "shopping-bag" : "heart"}
             title={
-              activeTab === "listings"
+              effectiveTab === "listings"
                 ? "No listings yet"
                 : "No favourites yet"
             }
             description={
-              activeTab === "listings"
+              effectiveTab === "listings"
                 ? "Tap the Sell tab to list your first item."
                 : "Heart items you like to save them here."
             }

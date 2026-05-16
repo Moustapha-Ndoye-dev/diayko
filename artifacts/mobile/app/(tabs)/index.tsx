@@ -16,7 +16,7 @@ import { ItemCard } from "@/components/ItemCard";
 import { CategoryBar } from "@/components/CategoryPill";
 import { SearchBar } from "@/components/SearchBar";
 import { PromoCarousel } from "@/components/PromoCarousel";
-import { FeaturedSellers } from "@/components/FeaturedSellers";
+import { TopCategories } from "@/components/TopCategories";
 import { SkeletonGrid } from "@/components/SkeletonCard";
 import { EmptyState } from "@/components/EmptyState";
 import { CATEGORIES } from "@/data/mockData";
@@ -192,7 +192,10 @@ export default function BrowseScreen() {
 
       <PromoCarousel />
       <View style={styles.divider} />
-      <FeaturedSellers />
+      <TopCategories
+        selected={selectedCategory === "all" ? undefined : selectedCategory}
+        onSelect={handleCategorySelect}
+      />
       <View style={styles.divider} />
 
       <View style={styles.sectionHeader}>
