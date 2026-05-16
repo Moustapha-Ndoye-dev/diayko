@@ -30,6 +30,9 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
   const colors = useColors();
   const router = useRouter();
 
+  // N'afficher la carte que pour les vendeurs approuvés ou en attente.
+  if (status === "none") return null;
+
   if (status === "approved") {
     return (
       <View
