@@ -28,6 +28,11 @@ function formatRelativeTime(iso: string): string {
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=80&q=60";
 
+// All conversations show "Vinted" as the contact to preserve seller anonymity.
+const PLATFORM_NAME = "Vinted";
+const PLATFORM_AVATAR = "V";
+const PLATFORM_AVATAR_COLOR = "#09B1BA";
+
 export default function InboxScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -49,12 +54,7 @@ export default function InboxScreen() {
       flexDirection: "row",
       alignItems: "center",
     },
-    headerTitle: {
-      flex: 1,
-      fontSize: 22,
-      fontFamily: "Inter_700Bold",
-      color: colors.foreground,
-    },
+    headerTitle: { flex: 1, fontSize: 22, fontFamily: "Inter_700Bold", color: colors.foreground },
     iconBtn: {
       width: 38,
       height: 38,
@@ -76,53 +76,37 @@ export default function InboxScreen() {
       width: 50,
       height: 50,
       borderRadius: 25,
-      backgroundColor: colors.primary,
+      backgroundColor: PLATFORM_AVATAR_COLOR,
       alignItems: "center",
       justifyContent: "center",
     },
-    avatarText: {
-      fontSize: 18,
-      fontFamily: "Inter_600SemiBold",
-      color: "#fff",
+    avatarText: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#fff" },
+    verifiedDot: {
+      position: "absolute",
+      bottom: 1,
+      right: 1,
+      width: 15,
+      height: 15,
+      borderRadius: 8,
+      backgroundColor: "#fff",
+      alignItems: "center",
+      justifyContent: "center",
     },
     content: { flex: 1 },
-    topLine: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    senderName: {
-      fontSize: 15,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-    },
-    time: {
-      fontSize: 12,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-    },
+    topLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    senderName: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.foreground },
+    verifiedName: { color: colors.primary },
+    time: { fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground },
     itemLabel: {
       fontSize: 12,
       fontFamily: "Inter_400Regular",
       color: colors.primary,
       marginBottom: 2,
     },
-    lastMessage: {
-      fontSize: 14,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-    },
-    lastMessageUnread: {
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-    },
+    lastMessage: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground },
+    lastMessageUnread: { fontFamily: "Inter_600SemiBold", color: colors.foreground },
     rightColumn: { alignItems: "flex-end", gap: 6 },
-    thumb: {
-      width: 44,
-      height: 44,
-      borderRadius: 6,
-      backgroundColor: colors.muted,
-    },
+    thumb: { width: 44, height: 44, borderRadius: 6, backgroundColor: colors.muted },
     unreadBadge: {
       width: 20,
       height: 20,
@@ -131,34 +115,16 @@ export default function InboxScreen() {
       alignItems: "center",
       justifyContent: "center",
     },
-    unreadBadgeText: {
-      fontSize: 11,
-      fontFamily: "Inter_700Bold",
-      color: "#fff",
-    },
+    unreadBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" },
     footer: { height: bottomPad + 16 },
   });
 
-  const AVATAR_COLORS = [
-    "#09B1BA",
-    "#6c5ce7",
-    "#fd79a8",
-    "#00b894",
-    "#fdcb6e",
-  ];
-
   const navigateToConversation = (conv: Conversation) => {
-    const initials = conv.otherUser.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
     router.push({
       pathname: "/conversation/[id]",
       params: {
         id: conv.id,
-        otherUserName: conv.otherUser.name,
-        otherUserInitials: initials,
+        // Never pass the real seller's name — always route through the platform identity.
         itemTitle: conv.item?.title ?? "",
         itemPrice: conv.item?.price?.toString() ?? "",
         itemImage: conv.item?.images[0] ?? "",
@@ -166,16 +132,14 @@ export default function InboxScreen() {
     });
   };
 
-  const renderItem = ({ item: conv, index }: { item: Conversation; index: number }) => {
-    const initials = conv.otherUser.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-    const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]!;
-    const thumbUri =
-      conv.item?.images[0] ??
-      (conv.item ? PLACEHOLDER_IMAGE : undefined);
+  const renderItem = ({
+    item: conv,
+    index: _i,
+  }: {
+    item: Conversation;
+    index: number;
+  }) => {
+    const thumbUri = conv.item?.images[0] ?? (conv.item ? PLACEHOLDER_IMAGE : undefined);
 
     return (
       <TouchableOpacity
@@ -183,18 +147,22 @@ export default function InboxScreen() {
         onPress={() => navigateToConversation(conv)}
         activeOpacity={0.75}
         accessibilityRole="button"
-        accessibilityLabel={`Conversation with ${conv.otherUser.name}`}
+        accessibilityLabel={`Conversation about ${conv.item?.title ?? "item"}`}
       >
-        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-          <Text style={styles.avatarText}>{initials}</Text>
+        <View style={{ position: "relative" }}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{PLATFORM_AVATAR}</Text>
+          </View>
+          <View style={styles.verifiedDot}>
+            <Feather name="check" size={10} color={colors.primary} />
+          </View>
         </View>
+
         <View style={styles.content}>
           <View style={styles.topLine}>
-            <Text style={styles.senderName}>{conv.otherUser.name}</Text>
+            <Text style={[styles.senderName, styles.verifiedName]}>{PLATFORM_NAME}</Text>
             {conv.lastMessageAt && (
-              <Text style={styles.time}>
-                {formatRelativeTime(conv.lastMessageAt)}
-              </Text>
+              <Text style={styles.time}>{formatRelativeTime(conv.lastMessageAt)}</Text>
             )}
           </View>
           {conv.item && (
@@ -204,23 +172,17 @@ export default function InboxScreen() {
           )}
           {conv.lastMessage && (
             <Text
-              style={[
-                styles.lastMessage,
-                conv.unreadCount > 0 && styles.lastMessageUnread,
-              ]}
+              style={[styles.lastMessage, conv.unreadCount > 0 && styles.lastMessageUnread]}
               numberOfLines={1}
             >
               {conv.lastMessage}
             </Text>
           )}
         </View>
+
         <View style={styles.rightColumn}>
           {thumbUri && (
-            <Image
-              source={{ uri: thumbUri }}
-              style={styles.thumb}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: thumbUri }} style={styles.thumb} resizeMode="cover" />
           )}
           {conv.unreadCount > 0 && (
             <View style={styles.unreadBadge}>
@@ -253,7 +215,7 @@ export default function InboxScreen() {
           <EmptyState
             icon="message-circle"
             title="No messages yet"
-            description="When you buy or sell an item, your conversations will appear here."
+            description="Buy an item or ask a question to start a conversation with Vinted."
           />
         }
         ListFooterComponent={<View style={styles.footer} />}

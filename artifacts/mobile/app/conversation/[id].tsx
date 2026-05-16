@@ -18,9 +18,19 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { api, ApiMessage } from "@/lib/api";
 import { AsyncState } from "@/types";
+import { censorMessage, hasCensoredContent } from "@/lib/censor";
+
+// ── Platform identity ────────────────────────────────────────────────────────
+const PLATFORM_NAME = "Vinted";
+const PLATFORM_AVATAR = "V";
+const PLATFORM_STATUS = "Official support · Usually replies in minutes";
 
 interface ChatMessage extends ApiMessage {
   isOwn: boolean;
+  /** System / platform message displayed differently */
+  isSystem?: boolean;
+  /** Original text before censorship (used to show the warning) */
+  wasCensored?: boolean;
 }
 
 function formatTime(iso: string): string {
@@ -31,18 +41,17 @@ function formatTime(iso: string): string {
 export default function ConversationScreen() {
   const {
     id,
-    otherUserName,
-    otherUserInitials,
     itemTitle,
     itemPrice,
     itemImage,
+    initialMessage,
   } = useLocalSearchParams<{
     id: string;
-    otherUserName?: string;
-    otherUserInitials?: string;
     itemTitle?: string;
     itemPrice?: string;
     itemImage?: string;
+    /** Pre-injected platform message (offer confirmation, order update, etc.) */
+    initialMessage?: string;
   }>();
 
   const router = useRouter();
@@ -51,33 +60,79 @@ export default function ConversationScreen() {
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [messagesState, setMessagesState] = useState<AsyncState<ChatMessage[]>>(
-    { status: "loading" }
-  );
+  const [messagesState, setMessagesState] = useState<AsyncState<ChatMessage[]>>({ status: "loading" });
 
   const currentUserId = "local-user";
 
   const loadMessages = useCallback(async () => {
     if (!id) return;
+
+    // "platform-*" conversations are local-only (not backed by a real conversation ID yet).
+    const isPlatformConv = id.startsWith("platform-");
+
+    const systemMessages: ChatMessage[] = [];
+
+    // Inject platform welcome for new conversations.
+    if (isPlatformConv) {
+      systemMessages.push({
+        id: "sys-welcome",
+        conversationId: id,
+        senderId: "platform",
+        text: "Bonjour 👋 Bienvenue chez Vinted. Comment pouvons-nous vous aider ?",
+        createdAt: new Date(Date.now() - 2000).toISOString(),
+        isOwn: false,
+        isSystem: true,
+      });
+    }
+
+    if (initialMessage) {
+      systemMessages.push({
+        id: "sys-initial",
+        conversationId: id,
+        senderId: "platform",
+        text: initialMessage,
+        createdAt: new Date(Date.now() - 1000).toISOString(),
+        isOwn: false,
+        isSystem: true,
+      });
+    }
+
+    if (isPlatformConv) {
+      setMessagesState({ status: "success", data: systemMessages });
+      return;
+    }
+
     try {
       const msgs = await api.conversations.messages(id);
-      const chatMsgs: ChatMessage[] = msgs.map((m) => ({
-        ...m,
-        isOwn: m.senderId === currentUserId,
-      }));
+      const chatMsgs: ChatMessage[] = [
+        ...systemMessages,
+        ...msgs.map((m) => {
+          const censored = censorMessage(m.text);
+          return {
+            ...m,
+            text: censored,
+            isOwn: m.senderId === currentUserId,
+            wasCensored: hasCensoredContent(m.text, censored),
+          };
+        }),
+      ];
       setMessagesState({ status: "success", data: chatMsgs });
     } catch {
       setMessagesState({ status: "error", message: "Failed to load messages" });
     }
-  }, [id]);
+  }, [id, initialMessage]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
   const handleSend = useCallback(async () => {
-    const text = inputText.trim();
-    if (!text || isSending || !id) return;
+    const raw = inputText.trim();
+    if (!raw || isSending || !id) return;
+
+    // Censor before sending and before adding to local state.
+    const censored = censorMessage(raw);
+    const didCensor = hasCensoredContent(raw, censored);
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setInputText("");
@@ -87,9 +142,10 @@ export default function ConversationScreen() {
       id: `optimistic-${Date.now()}`,
       conversationId: id,
       senderId: currentUserId,
-      text,
+      text: censored,
       createdAt: new Date().toISOString(),
       isOwn: true,
+      wasCensored: didCensor,
     };
 
     setMessagesState((prev) =>
@@ -98,17 +154,37 @@ export default function ConversationScreen() {
         : prev
     );
 
+    // If this is a platform-only conversation, simulate a reply after a brief delay.
+    const isPlatformConv = id.startsWith("platform-");
+    if (isPlatformConv) {
+      setTimeout(() => {
+        const reply: ChatMessage = {
+          id: `reply-${Date.now()}`,
+          conversationId: id,
+          senderId: "platform",
+          text: "Merci pour votre message ! Notre équipe va examiner votre demande et vous répondra rapidement.",
+          createdAt: new Date().toISOString(),
+          isOwn: false,
+          isSystem: true,
+        };
+        setMessagesState((prev) =>
+          prev.status === "success"
+            ? { status: "success", data: [...prev.data, reply] }
+            : prev
+        );
+      }, 1500);
+      setIsSending(false);
+      return;
+    }
+
     try {
-      const sent = await api.conversations.send(id, {
-        senderId: currentUserId,
-        text,
-      });
+      const sent = await api.conversations.send(id, { senderId: currentUserId, text: censored });
       setMessagesState((prev) =>
         prev.status === "success"
           ? {
               status: "success",
               data: prev.data.map((m) =>
-                m.id === optimistic.id ? { ...sent, isOwn: true } : m
+                m.id === optimistic.id ? { ...sent, isOwn: true, text: censored, wasCensored: didCensor } : m
               ),
             }
           : prev
@@ -116,13 +192,10 @@ export default function ConversationScreen() {
     } catch {
       setMessagesState((prev) =>
         prev.status === "success"
-          ? {
-              status: "success",
-              data: prev.data.filter((m) => m.id !== optimistic.id),
-            }
+          ? { status: "success", data: prev.data.filter((m) => m.id !== optimistic.id) }
           : prev
       );
-      setInputText(text);
+      setInputText(raw);
     } finally {
       setIsSending(false);
     }
@@ -144,13 +217,7 @@ export default function ConversationScreen() {
       borderBottomColor: colors.border,
       gap: 10,
     },
-    backBtn: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: "center",
-      justifyContent: "center",
-    },
+    backBtn: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
     headerAvatar: {
       width: 40,
       height: 40,
@@ -159,22 +226,10 @@ export default function ConversationScreen() {
       alignItems: "center",
       justifyContent: "center",
     },
-    headerAvatarText: {
-      fontSize: 16,
-      fontFamily: "Inter_700Bold",
-      color: "#fff",
-    },
+    headerAvatarText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#fff" },
     headerInfo: { flex: 1 },
-    headerName: {
-      fontSize: 16,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-    },
-    headerSub: {
-      fontSize: 12,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-    },
+    headerName: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: colors.foreground },
+    headerSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: colors.primary },
     itemBanner: {
       flexDirection: "row",
       alignItems: "center",
@@ -184,61 +239,31 @@ export default function ConversationScreen() {
       borderBottomColor: colors.border,
       gap: 10,
     },
-    itemThumb: {
-      width: 40,
-      height: 40,
-      borderRadius: 6,
-      backgroundColor: colors.muted,
-    },
-    itemBannerTitle: {
-      flex: 1,
-      fontSize: 13,
-      fontFamily: "Inter_500Medium",
-      color: colors.foreground,
-    },
-    itemBannerPrice: {
-      fontSize: 13,
-      fontFamily: "Inter_700Bold",
-      color: colors.primary,
-    },
+    itemThumb: { width: 40, height: 40, borderRadius: 6, backgroundColor: colors.muted },
+    itemBannerTitle: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", color: colors.foreground },
+    itemBannerPrice: { fontSize: 13, fontFamily: "Inter_700Bold", color: colors.primary },
     messagesList: { flex: 1 },
-    messagesContent: {
-      paddingHorizontal: 14,
-      paddingVertical: 16,
-      gap: 8,
-    },
-    messageRow: {
-      flexDirection: "row",
-      marginBottom: 4,
-    },
+    messagesContent: { paddingHorizontal: 14, paddingVertical: 16, gap: 8 },
+    messageRow: { flexDirection: "row", marginBottom: 4 },
     ownMessageRow: { justifyContent: "flex-end" },
     otherMessageRow: { justifyContent: "flex-start" },
-    bubble: {
-      maxWidth: "75%",
-      borderRadius: 18,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-    },
-    ownBubble: {
-      backgroundColor: colors.primary,
-      borderBottomRightRadius: 4,
-    },
+    bubble: { maxWidth: "78%", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
+    ownBubble: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
     otherBubble: {
       backgroundColor: colors.card,
       borderBottomLeftRadius: 4,
       borderWidth: 1,
       borderColor: colors.border,
     },
-    ownBubbleText: {
-      fontSize: 15,
-      fontFamily: "Inter_400Regular",
-      color: "#fff",
+    systemBubble: {
+      backgroundColor: colors.accent,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.primary + "33",
     },
-    otherBubbleText: {
-      fontSize: 15,
-      fontFamily: "Inter_400Regular",
-      color: colors.foreground,
-    },
+    ownBubbleText: { fontSize: 15, fontFamily: "Inter_400Regular", color: "#fff" },
+    otherBubbleText: { fontSize: 15, fontFamily: "Inter_400Regular", color: colors.foreground },
+    systemBubbleText: { fontSize: 14, fontFamily: "Inter_500Medium", color: colors.foreground },
     timeText: {
       fontSize: 11,
       fontFamily: "Inter_400Regular",
@@ -247,6 +272,14 @@ export default function ConversationScreen() {
       marginHorizontal: 4,
     },
     ownTimeText: { textAlign: "right" },
+    censorNotice: {
+      fontSize: 11,
+      fontFamily: "Inter_400Regular",
+      color: "#e74c3c",
+      marginTop: 2,
+      marginHorizontal: 4,
+    },
+    ownCensorNotice: { textAlign: "right" },
     inputBar: {
       flexDirection: "row",
       alignItems: "flex-end",
@@ -278,53 +311,41 @@ export default function ConversationScreen() {
       justifyContent: "center",
     },
     sendBtnDisabled: { backgroundColor: colors.muted },
-    loadingContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    errorText: {
-      fontSize: 14,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-      textAlign: "center",
-    },
+    loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
+    errorText: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center" },
   });
 
-  const renderMessage = ({ item }: { item: ChatMessage }) => (
+  const renderMessage = ({ item: msg }: { item: ChatMessage }) => (
     <View>
       <View
         style={[
           styles.messageRow,
-          item.isOwn ? styles.ownMessageRow : styles.otherMessageRow,
+          msg.isOwn ? styles.ownMessageRow : styles.otherMessageRow,
         ]}
       >
         <View
           style={[
             styles.bubble,
-            item.isOwn ? styles.ownBubble : styles.otherBubble,
+            msg.isOwn ? styles.ownBubble : msg.isSystem ? styles.systemBubble : styles.otherBubble,
           ]}
         >
-          <Text
-            style={item.isOwn ? styles.ownBubbleText : styles.otherBubbleText}
-          >
-            {item.text}
+          <Text style={msg.isOwn ? styles.ownBubbleText : msg.isSystem ? styles.systemBubbleText : styles.otherBubbleText}>
+            {msg.text}
           </Text>
         </View>
       </View>
-      <Text
-        style={[
-          styles.timeText,
-          item.isOwn ? styles.ownTimeText : undefined,
-        ]}
-      >
-        {formatTime(item.createdAt)}
+      {msg.wasCensored && (
+        <Text style={[styles.censorNotice, msg.isOwn && styles.ownCensorNotice]}>
+          ⚠️ Informations de contact supprimées — échangez uniquement via Vinted.
+        </Text>
+      )}
+      <Text style={[styles.timeText, msg.isOwn ? styles.ownTimeText : undefined]}>
+        {formatTime(msg.createdAt)}
       </Text>
     </View>
   );
 
-  const messages =
-    messagesState.status === "success" ? messagesState.data : [];
+  const messages = messagesState.status === "success" ? messagesState.data : [];
   const canSend = inputText.trim().length > 0 && !isSending;
 
   return (
@@ -332,6 +353,7 @@ export default function ConversationScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
+      {/* ── Header — always shows Vinted, never the real seller ─────────────── */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -342,29 +364,24 @@ export default function ConversationScreen() {
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <View style={styles.headerAvatar}>
-          <Text style={styles.headerAvatarText}>
-            {otherUserInitials ?? "?"}
-          </Text>
+          <Text style={styles.headerAvatarText}>{PLATFORM_AVATAR}</Text>
         </View>
         <View style={styles.headerInfo}>
           <Text style={styles.headerName} numberOfLines={1}>
-            {otherUserName ?? "Conversation"}
+            {PLATFORM_NAME}
           </Text>
-          <Text style={styles.headerSub}>Active now</Text>
+          <Text style={styles.headerSub}>{PLATFORM_STATUS}</Text>
         </View>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="More options">
           <Feather name="more-horizontal" size={22} color={colors.foreground} />
         </TouchableOpacity>
       </View>
 
+      {/* ── Item context banner ──────────────────────────────────────────────── */}
       {itemTitle ? (
         <View style={styles.itemBanner}>
           {itemImage ? (
-            <Image
-              source={{ uri: itemImage }}
-              style={styles.itemThumb}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: itemImage }} style={styles.itemThumb} resizeMode="cover" />
           ) : (
             <View style={styles.itemThumb} />
           )}
@@ -381,7 +398,7 @@ export default function ConversationScreen() {
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(msg) => msg.id}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => {
@@ -401,9 +418,7 @@ export default function ConversationScreen() {
             </View>
           ) : (
             <View style={styles.loadingContainer}>
-              <Text style={styles.errorText}>
-                No messages yet. Say hello!
-              </Text>
+              <Text style={styles.errorText}>Envoyez votre premier message.</Text>
             </View>
           )
         }
@@ -414,7 +429,7 @@ export default function ConversationScreen() {
           style={styles.input}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Write a message…"
+          placeholder="Écrire un message…"
           placeholderTextColor={colors.mutedForeground}
           multiline
           returnKeyType="send"
