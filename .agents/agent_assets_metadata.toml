@@ -42,3 +42,21 @@ id = "nxhWFHsazQA7E4SJSLkCs"
 uri = "file://artifacts/mobile/assets/images/item6.png"
 type = "image"
 title = "knit sweater product"
+
+[[generated]]
+id = "T0pJnlvXhD86xB2UOYSi7"
+uri = "file://artifacts/mobile/assets/images/promo1.png"
+type = "image"
+title = "summer sale promo banner"
+
+[[generated]]
+id = "b1s87oaU7Hl9ymOQwZkYD"
+uri = "file://artifacts/mobile/assets/images/promo2.png"
+type = "image"
+title = "new arrivals promo banner"
+
+[[generated]]
+id = "5qDndGiFilC4pWgJIX1jj"
+uri = "file://artifacts/mobile/assets/images/promo3.png"
+type = "image"
+title = "vintage picks promo banner"
