@@ -17,14 +17,15 @@ function ClassicTabLayout() {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
-  // Redirect to onboarding if not completed.
+  // Redirect to onboarding if not completed (skip on web for preview).
   useEffect(() => {
+    if (isWeb) return;
     storage.onboarding.isComplete().then((complete) => {
       if (!complete) {
         router.replace("/onboarding");
       }
     });
-  }, [router]);
+  }, [router, isWeb]);
 
   return (
     <Tabs

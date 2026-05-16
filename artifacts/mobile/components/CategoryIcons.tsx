@@ -1,302 +1,327 @@
 import React from "react";
-import Svg, { Path, Circle, Rect, Ellipse, Line } from "react-native-svg";
+import Svg, { Path, Circle, Rect, Ellipse, G } from "react-native-svg";
 
 interface CatIconProps {
   color: string;
   size?: number;
 }
 
-/** Femmes — robe A-line avec ceinture et décolleté V */
+/** Femmes — silhouette robe */
 export function WomanIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Tête */}
-      <Circle cx="16" cy="4.5" r="3.2" fill={color} />
-      {/* Cou */}
-      <Rect x="14.7" y="7.4" width="2.6" height="2.2" rx="1.1" fill={color} />
-      {/* Manches courtes */}
-      <Ellipse cx="9.8" cy="13" rx="3.2" ry="1.8" fill={color} fillOpacity={0.62} />
-      <Ellipse cx="22.2" cy="13" rx="3.2" ry="1.8" fill={color} fillOpacity={0.62} />
-      {/* Corsage ajusté */}
+      <Circle cx="32" cy="10" r="8" fill={color} />
+      {/* Robe haut */}
       <Path
-        d="M11.5 10.5 Q11 9.4 16 9.4 Q21 9.4 20.5 10.5 L19.8 17.5 Q16 16.4 12.2 17.5 Z"
+        d="M20 24 C20 20 24 18 32 18 C40 18 44 20 44 24 L40 38 L24 38 Z"
         fill={color}
       />
-      {/* Jupe évasée */}
+      {/* Robe bas évasée */}
       <Path
-        d="M12.2 17.5 Q16 16.4 19.8 17.5 L25 30.5 Q16 28.2 7 30.5 Z"
+        d="M24 38 L16 58 L48 58 L40 38 Z"
         fill={color}
-        fillOpacity={0.78}
+        fillOpacity={0.8}
       />
       {/* Décolleté V */}
       <Path
-        d="M14 10.2 L16 13 L18 10.2"
+        d="M28 18 L32 26 L36 18"
         stroke="white"
-        strokeWidth={1.35}
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        strokeOpacity={0.65}
+        strokeOpacity={0.5}
       />
-      {/* Ceinture */}
+      {/* Taille */}
       <Path
-        d="M12.2 17.5 Q16 16.4 19.8 17.5"
+        d="M24 38 Q32 35 40 38"
         stroke="white"
-        strokeWidth={2.2}
+        strokeWidth="2"
         strokeLinecap="round"
         fill="none"
-        strokeOpacity={0.42}
+        strokeOpacity={0.35}
       />
     </Svg>
   );
 }
 
-/** Hommes — polo avec col et manches */
+/** Hommes — silhouette costume / chemise */
 export function ManIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Tête */}
-      <Circle cx="16" cy="4.5" r="3.2" fill={color} />
+      <Circle cx="32" cy="10" r="8" fill={color} />
       {/* Corps */}
       <Path
-        d="M11 11 L11 30.5 L21 30.5 L21 11 Q18.5 10.4 16 9.8 Q13.5 10.4 11 11 Z"
+        d="M22 22 L22 56 L42 56 L42 22 Q37 20 32 19 Q27 20 22 22 Z"
         fill={color}
       />
       {/* Manche gauche */}
       <Path
-        d="M11 12.5 L4.5 16.5 L6 19.5 L11 16 Z"
+        d="M22 24 L10 34 L13 40 L22 30 Z"
         fill={color}
-        fillOpacity={0.72}
+        fillOpacity={0.75}
       />
       {/* Manche droite */}
       <Path
-        d="M21 12.5 L27.5 16.5 L26 19.5 L21 16 Z"
+        d="M42 24 L54 34 L51 40 L42 30 Z"
         fill={color}
-        fillOpacity={0.72}
+        fillOpacity={0.75}
       />
       {/* Col gauche */}
       <Path
-        d="M13.8 10 Q13.2 11.5 16 14"
+        d="M28 20 Q27 24 32 28"
         stroke="white"
-        strokeWidth={2.8}
+        strokeWidth="3"
         strokeLinecap="round"
-        strokeOpacity={0.28}
+        strokeOpacity={0.3}
         fill="none"
       />
       {/* Col droit */}
       <Path
-        d="M18.2 10 Q18.8 11.5 16 14"
+        d="M36 20 Q37 24 32 28"
         stroke="white"
-        strokeWidth={2.8}
+        strokeWidth="3"
         strokeLinecap="round"
-        strokeOpacity={0.28}
+        strokeOpacity={0.3}
         fill="none"
       />
-      {/* Placket boutons */}
-      <Line
-        x1="16" y1="14.5" x2="16" y2="27.5"
-        stroke="white"
-        strokeWidth={1.25}
-        strokeDasharray="1.8 2.6"
-        strokeLinecap="round"
-        strokeOpacity={0.48}
-      />
+      {/* Boutons */}
+      <Circle cx="32" cy="34" r="1.5" fill="white" fillOpacity={0.4} />
+      <Circle cx="32" cy="41" r="1.5" fill="white" fillOpacity={0.4} />
+      <Circle cx="32" cy="48" r="1.5" fill="white" fillOpacity={0.4} />
     </Svg>
   );
 }
 
-/** Enfants — ours en peluche avec expression douce */
+/** Enfants — body / grenouillère */
 export function KidsIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      {/* Oreilles */}
-      <Circle cx="8.5" cy="8" r="5" fill={color} />
-      <Circle cx="23.5" cy="8" r="5" fill={color} />
-      {/* Intérieur oreilles */}
-      <Circle cx="8.5" cy="8" r="2.8" fill="white" fillOpacity={0.3} />
-      <Circle cx="23.5" cy="8" r="2.8" fill="white" fillOpacity={0.3} />
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Tête */}
-      <Circle cx="16" cy="18" r="12.5" fill={color} />
-      {/* Yeux blancs */}
-      <Circle cx="12" cy="15.5" r="2.2" fill="white" />
-      <Circle cx="20" cy="15.5" r="2.2" fill="white" />
-      {/* Pupilles */}
-      <Circle cx="12.6" cy="15.8" r="1.1" fill={color} />
-      <Circle cx="20.6" cy="15.8" r="1.1" fill={color} />
-      {/* Reflets yeux */}
-      <Circle cx="13.1" cy="15.2" r="0.45" fill="white" />
-      <Circle cx="21.1" cy="15.2" r="0.45" fill="white" />
-      {/* Museau */}
-      <Ellipse cx="16" cy="21.5" rx="5.5" ry="4" fill="white" fillOpacity={0.28} />
-      {/* Nez */}
-      <Ellipse cx="16" cy="20" rx="2" ry="1.4" fill="white" fillOpacity={0.9} />
+      <Circle cx="32" cy="11" r="9" fill={color} />
+      {/* Yeux */}
+      <Circle cx="28.5" cy="9.5" r="1.8" fill="white" fillOpacity={0.85} />
+      <Circle cx="35.5" cy="9.5" r="1.8" fill="white" fillOpacity={0.85} />
+      <Circle cx="29" cy="9.8" r="0.9" fill={color} />
+      <Circle cx="36" cy="9.8" r="0.9" fill={color} />
       {/* Sourire */}
       <Path
-        d="M12.8 23 Q16 25.8 19.2 23"
+        d="M28 14 Q32 17 36 14"
         stroke="white"
-        strokeWidth={1.4}
+        strokeWidth="1.5"
         fill="none"
         strokeLinecap="round"
-        strokeOpacity={0.75}
+        strokeOpacity={0.7}
       />
+      {/* Body */}
+      <Path
+        d="M20 24 L20 50 Q20 54 24 54 L40 54 Q44 54 44 50 L44 24 Q38 21 32 21 Q26 21 20 24 Z"
+        fill={color}
+        fillOpacity={0.9}
+      />
+      {/* Petites manches */}
+      <Path d="M20 25 L12 30 L14 35 L20 30 Z" fill={color} fillOpacity={0.65} />
+      <Path d="M44 25 L52 30 L50 35 L44 30 Z" fill={color} fillOpacity={0.65} />
+      {/* Bouton pression bas */}
+      <Circle cx="29" cy="53" r="1.5" fill="white" fillOpacity={0.45} />
+      <Circle cx="35" cy="53" r="1.5" fill="white" fillOpacity={0.45} />
     </Svg>
   );
 }
 
-/** Chaussures — basket profil vue latérale */
+/** Chaussures — sneaker vue de côté */
 export function ShoesIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      {/* Semelle épaisse */}
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {/* Semelle */}
       <Path
-        d="M2.5 27 Q2.5 29.5 5.5 29.5 L27.5 29.5 Q30.5 29.5 30.5 27 L30.5 25.5 L2.5 25.5 Z"
+        d="M4 50 Q4 58 12 58 L56 58 Q62 58 62 52 L62 48 L4 48 Z"
         fill={color}
-        fillOpacity={0.62}
+        fillOpacity={0.6}
       />
-      {/* Tige upper */}
+      {/* Tige principale */}
       <Path
-        d="M4.5 25.5 L4.5 19.5 Q4.5 13.5 9 11.5 Q14 9.5 19.5 11 Q25 12.5 27 17.5 L27 25.5 Z"
+        d="M8 48 L8 36 Q8 22 18 19 Q28 16 38 20 Q50 24 54 36 L54 48 Z"
         fill={color}
       />
       {/* Languette */}
       <Path
-        d="M9.5 11.8 L9.5 18 Q12.5 17.2 15.5 18 L15.5 11.5"
+        d="M18 20 L18 35 Q24 33 30 35 L30 20"
         fill="white"
-        fillOpacity={0.22}
+        fillOpacity={0.18}
       />
       {/* Lacets */}
-      <Line x1="10" y1="13.5" x2="15" y2="13.5" stroke="white" strokeWidth={1.1} strokeLinecap="round" strokeOpacity={0.58} />
-      <Line x1="10" y1="15.2" x2="15.5" y2="15.2" stroke="white" strokeWidth={1.1} strokeLinecap="round" strokeOpacity={0.58} />
-      <Line x1="10" y1="16.9" x2="15.5" y2="16.9" stroke="white" strokeWidth={1.1} strokeLinecap="round" strokeOpacity={0.58} />
-      {/* Bande logo latérale */}
+      <Path d="M19 24 L29 24" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity={0.55} />
+      <Path d="M19 28 L30 28" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity={0.55} />
+      <Path d="M19 32 L30 32" stroke="white" strokeWidth="2" strokeLinecap="round" strokeOpacity={0.55} />
+      {/* Bande décorative */}
       <Path
-        d="M13 22.5 Q19.5 19.5 25.5 21.5"
+        d="M26 44 Q38 38 52 42"
         stroke="white"
-        strokeWidth={1.5}
+        strokeWidth="2.5"
         strokeLinecap="round"
         fill="none"
-        strokeOpacity={0.38}
+        strokeOpacity={0.35}
       />
     </Svg>
   );
 }
 
-/** Sacs — sac à main structuré avec fermoir */
+/** Sacs — sac à main avec anse */
 export function BagIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Anse */}
       <Path
-        d="M11.5 14 Q11.5 7 16 7 Q20.5 7 20.5 14"
+        d="M22 28 Q22 14 32 14 Q42 14 42 28"
         stroke={color}
-        strokeWidth={2.6}
+        strokeWidth="5"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Corps sac */}
+      {/* Corps */}
+      <Rect x="10" y="28" width="44" height="30" rx="6" fill={color} fillOpacity={0.92} />
+      {/* Ligne rabat */}
       <Path
-        d="M5.5 15 Q5.5 13.2 7 13.2 L25 13.2 Q26.5 13.2 26.5 15 L26.5 26.5 Q26.5 29.5 24 29.5 L8 29.5 Q5.5 29.5 5.5 26.5 Z"
-        fill={color}
-        fillOpacity={0.92}
-      />
-      {/* Séparation rabat */}
-      <Path
-        d="M5.5 20.5 L26.5 20.5"
+        d="M10 40 L54 40"
         stroke="white"
-        strokeWidth={1}
-        strokeOpacity={0.28}
+        strokeWidth="1.5"
+        strokeOpacity={0.25}
       />
-      {/* Fermoir corps */}
-      <Rect x="13.5" y="12" width="5" height="3.8" rx="1.8" fill={color} />
-      {/* Détail fermoir */}
-      <Circle cx="16" cy="13.8" r="1.3" fill="white" fillOpacity={0.58} />
-      {/* Reflet sac */}
+      {/* Fermoir */}
+      <Rect x="27" y="25" width="10" height="8" rx="4" fill={color} />
+      <Circle cx="32" cy="29" r="2.5" fill="white" fillOpacity={0.55} />
+      {/* Reflet */}
       <Path
-        d="M7.5 15 L7.5 20"
+        d="M14 30 L14 39"
         stroke="white"
-        strokeWidth={1}
+        strokeWidth="2"
         strokeLinecap="round"
-        strokeOpacity={0.22}
+        strokeOpacity={0.2}
       />
     </Svg>
   );
 }
 
-/** Accessoires — montre sport rectangulaire moderne */
+/** Accessoires — montre connectée / bijou */
 export function WatchIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Bracelet haut */}
       <Path
-        d="M12.5 3.5 Q12.5 2.5 13.5 2.5 L18.5 2.5 Q19.5 2.5 19.5 3.5 L19.5 10 L12.5 10 Z"
+        d="M24 6 Q24 4 26 4 L38 4 Q40 4 40 6 L40 18 L24 18 Z"
         fill={color}
-        fillOpacity={0.62}
+        fillOpacity={0.6}
       />
       {/* Bracelet bas */}
       <Path
-        d="M12.5 22 L19.5 22 L19.5 28.5 Q19.5 29.5 18.5 29.5 L13.5 29.5 Q12.5 29.5 12.5 28.5 Z"
+        d="M24 46 L40 46 L40 58 Q40 60 38 60 L26 60 Q24 60 24 58 Z"
         fill={color}
-        fillOpacity={0.62}
+        fillOpacity={0.6}
       />
       {/* Boîtier */}
-      <Rect x="7" y="9" width="18" height="14" rx="5.5" fill={color} />
+      <Rect x="14" y="16" width="36" height="32" rx="12" fill={color} />
       {/* Cadran */}
-      <Rect x="9.8" y="11.5" width="12.4" height="9" rx="3.5" fill="white" fillOpacity={0.95} />
-      {/* Couronne latérale */}
-      <Rect x="24.8" y="14.2" width="3" height="3.6" rx="1" fill={color} />
-      {/* Aiguille minutes */}
-      <Line x1="16" y1="16" x2="16" y2="12.8" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
-      {/* Aiguille heures */}
-      <Line x1="16" y1="16" x2="19.5" y2="16" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
-      {/* Point central */}
-      <Circle cx="16" cy="16" r="1.1" fill={color} />
+      <Rect x="18" y="20" width="28" height="24" rx="9" fill="white" fillOpacity={0.92} />
+      {/* Couronne */}
+      <Rect x="50" y="27" width="6" height="10" rx="3" fill={color} />
+      {/* Aiguilles */}
+      <Path d="M32 32 L32 24" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <Path d="M32 32 L38 32" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <Circle cx="32" cy="32" r="2" fill={color} />
     </Svg>
   );
 }
 
-/** Sport — maillot de sport avec col V et manches */
+/** Sport — maillot de sport */
 export function SportIcon({ color, size = 28 }: CatIconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      {/* Corps maillot */}
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {/* Corps */}
       <Path
-        d="M10.5 11.5 L10.5 30 L21.5 30 L21.5 11.5 Q19 11 16 10.5 Q13 11 10.5 11.5 Z"
+        d="M20 22 L20 58 L44 58 L44 22 Q38 20 32 19 Q26 20 20 22 Z"
         fill={color}
       />
       {/* Manche gauche */}
       <Path
-        d="M10.5 12 L3.5 8 L5.5 4.5 L11.5 10.5 Z"
+        d="M20 23 L6 14 L10 8 L23 19 Z"
         fill={color}
         fillOpacity={0.78}
       />
       {/* Manche droite */}
       <Path
-        d="M21.5 12 L28.5 8 L26.5 4.5 L20.5 10.5 Z"
+        d="M44 23 L58 14 L54 8 L41 19 Z"
         fill={color}
         fillOpacity={0.78}
       />
       {/* Col V */}
       <Path
-        d="M14 10.8 L16 14.5 L18 10.8"
+        d="M27 20 L32 28 L37 20"
         stroke="white"
-        strokeWidth={2.8}
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        strokeOpacity={0.28}
+        strokeOpacity={0.3}
       />
-      {/* Bande horizontale décor */}
-      <Rect x="10.5" y="18.5" width="11" height="3" fill="white" fillOpacity={0.18} />
-      {/* Numéro "7" stylisé */}
+      {/* Bande horizontale */}
+      <Rect x="20" y="36" width="24" height="6" fill="white" fillOpacity={0.15} />
+      {/* Numéro */}
       <Path
-        d="M14 22.5 L18 22.5 L15 30"
+        d="M28 40 L36 40 L31 56"
         stroke="white"
-        strokeWidth={1.4}
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        strokeOpacity={0.58}
+        strokeOpacity={0.5}
       />
+    </Svg>
+  );
+}
+
+/** Maison — canapé / décoration intérieure */
+export function HomeIcon({ color, size = 28 }: CatIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {/* Dossier canapé */}
+      <Rect x="6" y="20" width="52" height="22" rx="8" fill={color} />
+      {/* Assise */}
+      <Rect x="10" y="36" width="44" height="14" rx="5" fill={color} fillOpacity={0.75} />
+      {/* Accoudoir gauche */}
+      <Rect x="6" y="30" width="10" height="20" rx="5" fill={color} fillOpacity={0.9} />
+      {/* Accoudoir droit */}
+      <Rect x="48" y="30" width="10" height="20" rx="5" fill={color} fillOpacity={0.9} />
+      {/* Pieds */}
+      <Rect x="14" y="50" width="5" height="8" rx="2" fill={color} fillOpacity={0.6} />
+      <Rect x="45" y="50" width="5" height="8" rx="2" fill={color} fillOpacity={0.6} />
+      {/* Coussin */}
+      <Rect x="16" y="37" width="14" height="10" rx="4" fill="white" fillOpacity={0.18} />
+      <Rect x="34" y="37" width="14" height="10" rx="4" fill="white" fillOpacity={0.18} />
+    </Svg>
+  );
+}
+
+/** Beauté — flacon de parfum */
+export function BeautyIcon({ color, size = 28 }: CatIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {/* Bouchon */}
+      <Rect x="22" y="6" width="20" height="10" rx="4" fill={color} fillOpacity={0.7} />
+      {/* Col flacon */}
+      <Rect x="27" y="16" width="10" height="6" rx="2" fill={color} fillOpacity={0.85} />
+      {/* Vaporisateur */}
+      <Rect x="36" y="10" width="12" height="4" rx="2" fill={color} fillOpacity={0.55} />
+      <Rect x="46" y="8" width="4" height="8" rx="2" fill={color} fillOpacity={0.45} />
+      {/* Corps flacon */}
+      <Rect x="14" y="22" width="36" height="36" rx="10" fill={color} fillOpacity={0.9} />
+      {/* Reflet */}
+      <Rect x="20" y="26" width="10" height="24" rx="5" fill="white" fillOpacity={0.18} />
+      {/* Décor floral */}
+      <Circle cx="38" cy="40" r="6" fill="white" fillOpacity={0.12} />
+      <Circle cx="38" cy="40" r="3" fill="white" fillOpacity={0.15} />
     </Svg>
   );
 }
@@ -309,4 +334,6 @@ export const CATEGORY_ICON_MAP: Record<string, React.ComponentType<CatIconProps>
   bags: BagIcon,
   accessories: WatchIcon,
   sport: SportIcon,
+  home: HomeIcon,
+  beauty: BeautyIcon,
 };
