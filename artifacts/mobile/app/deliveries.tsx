@@ -48,7 +48,6 @@ export default function DeliveriesScreen() {
   const load = useCallback(async () => {
     try {
       setError(null);
-      // Fetch active orders (processing + in_transit), then load detail for events.
       const [proc, inTransit] = await Promise.all([
         api.orders.list({ userId: currentUser.id, role: "buyer", status: "processing" }),
         api.orders.list({ userId: currentUser.id, role: "buyer", status: "in_transit" }),
