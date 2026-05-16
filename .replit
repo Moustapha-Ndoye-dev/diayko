@@ -14,6 +14,7 @@ runButton = "Project"
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
+integrations = ["github:1.0.0"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
@@ -49,3 +50,6 @@ externalPort = 3001
 
 [objectStorage]
 defaultBucketID = "replit-objstore-1e7d37eb-0521-4a31-901b-ad110f0f5f3d"
+
+[nix]
+channel = "stable-25_05"
