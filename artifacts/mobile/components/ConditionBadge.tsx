@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { Item } from "@/types";
+import { conditionLabel } from "@/data/mockData";
 
 const CONDITION_COLORS: Record<Item["condition"], { bg: string; text: string }> = {
   "New with tags": { bg: "#e8f9f0", text: "#27ae60" },
@@ -34,7 +35,7 @@ export function ConditionBadge({ condition }: ConditionBadgeProps) {
 
   return (
     <View style={styles.badge}>
-      <Text style={styles.text}>{condition}</Text>
+      <Text style={styles.text}>{conditionLabel(condition)}</Text>
     </View>
   );
 }

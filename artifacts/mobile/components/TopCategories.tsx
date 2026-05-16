@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { CATEGORIES } from "@/data/mockData";
 
@@ -94,8 +94,8 @@ export function TopCategories({ selected, onSelect }: TopCategoriesProps) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.label}>Top Categories</Text>
-        <Text style={styles.seeAll}>See all</Text>
+        <Text style={styles.label}>Catégories populaires</Text>
+        <Text style={styles.seeAll}>Voir tout</Text>
       </View>
       <ScrollView
         horizontal
@@ -113,7 +113,7 @@ export function TopCategories({ selected, onSelect }: TopCategoriesProps) {
               onPress={() => onSelect?.(cat.id)}
               activeOpacity={0.75}
               accessibilityRole="button"
-              accessibilityLabel={`Category ${cat.label}`}
+              accessibilityLabel={`Catégorie ${cat.label}`}
               accessibilityState={{ selected: isSelected }}
             >
               <View
@@ -123,9 +123,9 @@ export function TopCategories({ selected, onSelect }: TopCategoriesProps) {
                   isSelected && styles.iconCircleSelected,
                 ]}
               >
-                <Feather
-                  name={cat.icon as keyof typeof Feather.glyphMap}
-                  size={24}
+                <Ionicons
+                  name={cat.icon as keyof typeof Ionicons.glyphMap}
+                  size={28}
                   color={iconColor}
                 />
               </View>

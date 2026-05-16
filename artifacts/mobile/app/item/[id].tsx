@@ -318,7 +318,7 @@ export default function ItemDetailScreen() {
               style={styles.navBtn}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Go back"
+              accessibilityLabel="Retour"
             >
               <Feather name="arrow-left" size={20} color={colors.foreground} />
             </TouchableOpacity>
@@ -327,14 +327,14 @@ export default function ItemDetailScreen() {
                 style={styles.navBtn}
                 onPress={handleLike}
                 accessibilityRole="button"
-                accessibilityLabel={liked ? "Remove from favourites" : "Add to favourites"}
+                accessibilityLabel={liked ? "Retirer des favoris" : "Ajouter aux favoris"}
               >
                 <Feather name="heart" size={20} color={liked ? "#e74c3c" : colors.foreground} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.navBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Share item"
+                accessibilityLabel="Partager l'article"
               >
                 <Feather name="share-2" size={20} color={colors.foreground} />
               </TouchableOpacity>
@@ -473,7 +473,7 @@ export default function ItemDetailScreen() {
           onPress={() => setOfferModal(false)}
         >
           <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Make an offer</Text>
+            <Text style={styles.modalTitle}>Faire une offre</Text>
             <Text style={styles.modalSub}>
               Prix affiché : {item.price} FCFA. Entrez votre offre ci-dessous.
             </Text>
@@ -495,17 +495,17 @@ export default function ItemDetailScreen() {
               disabled={!offerAmount || parseFloat(offerAmount) <= 0}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel="Send offer"
+              accessibilityLabel="Envoyer l'offre"
             >
-              <Text style={styles.sendOfferBtnText}>Send offer</Text>
+              <Text style={styles.sendOfferBtnText}>Envoyer l'offre</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.cancelBtn}
               onPress={() => setOfferModal(false)}
               accessibilityRole="button"
-              accessibilityLabel="Cancel"
+              accessibilityLabel="Annuler"
             >
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>Annuler</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>

@@ -1,17 +1,17 @@
 import { Item, Seller, Conversation, Category, Condition } from "@/types";
 
 export const CATEGORIES: Category[] = [
-  { id: "all", label: "All", icon: "grid" },
-  { id: "women", label: "Women", icon: "heart" },
-  { id: "men", label: "Men", icon: "briefcase" },
-  { id: "kids", label: "Kids", icon: "smile" },
-  { id: "shoes", label: "Shoes", icon: "shopping-bag" },
-  { id: "bags", label: "Bags", icon: "package" },
-  { id: "accessories", label: "Accessories", icon: "watch" },
-  { id: "sport", label: "Sport", icon: "activity" },
+  { id: "all", label: "Tout", icon: "grid" },
+  { id: "women", label: "Femmes", icon: "woman" },
+  { id: "men", label: "Hommes", icon: "man" },
+  { id: "kids", label: "Enfants", icon: "happy" },
+  { id: "shoes", label: "Chaussures", icon: "footsteps" },
+  { id: "bags", label: "Sacs", icon: "bag-handle" },
+  { id: "accessories", label: "Accessoires", icon: "watch" },
+  { id: "sport", label: "Sport", icon: "basketball" },
 ];
 
-export const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+export const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "Taille unique"];
 
 export const CONDITIONS: Condition[] = [
   "New with tags",
@@ -20,10 +20,29 @@ export const CONDITIONS: Condition[] = [
   "Fair",
 ];
 
+export const CONDITION_LABELS: Record<Condition, string> = {
+  "New with tags": "Neuf avec étiquette",
+  "Like new": "Comme neuf",
+  Good: "Bon état",
+  Fair: "État correct",
+};
+
+export const SIZE_LABELS: Record<string, string> = {
+  "One Size": "Taille unique",
+};
+
+export function conditionLabel(c: Condition | string): string {
+  return CONDITION_LABELS[c as Condition] ?? String(c);
+}
+
+export function sizeLabel(s: string): string {
+  return SIZE_LABELS[s] ?? s;
+}
+
 export const MOCK_USERS: Seller[] = [
   {
     id: "u1",
-    name: "Sophie Martin",
+    name: "Aïssatou Diop",
     rating: 4.9,
     reviewCount: 128,
     itemCount: 45,
@@ -31,11 +50,11 @@ export const MOCK_USERS: Seller[] = [
     followingCount: 89,
     joinedAt: "2022-03-01",
     verified: true,
-    bio: "Fashion lover, sustainable shopper. All items are from my own wardrobe.",
+    bio: "Passionnée de mode, vendeuse responsable. Tous les articles viennent de ma propre garde-robe.",
   },
   {
     id: "u2",
-    name: "Emma Wilson",
+    name: "Fatou Ndiaye",
     rating: 4.7,
     reviewCount: 64,
     itemCount: 23,
@@ -43,11 +62,11 @@ export const MOCK_USERS: Seller[] = [
     followingCount: 45,
     joinedAt: "2023-01-15",
     verified: false,
-    bio: "Minimalist closet, vintage finds.",
+    bio: "Dressing minimaliste, trouvailles vintage.",
   },
   {
     id: "u3",
-    name: "Lucas Petit",
+    name: "Moussa Sarr",
     rating: 4.8,
     reviewCount: 92,
     itemCount: 31,
@@ -58,7 +77,7 @@ export const MOCK_USERS: Seller[] = [
   },
   {
     id: "u4",
-    name: "Chloe Bernard",
+    name: "Awa Faye",
     rating: 5.0,
     reviewCount: 47,
     itemCount: 18,
@@ -69,7 +88,7 @@ export const MOCK_USERS: Seller[] = [
   },
   {
     id: "u5",
-    name: "Mathieu Dupont",
+    name: "Mamadou Ba",
     rating: 4.6,
     reviewCount: 33,
     itemCount: 12,
@@ -81,14 +100,13 @@ export const MOCK_USERS: Seller[] = [
 ];
 
 // Fallback items used when the API is unreachable.
-// Images point to Unsplash URLs (same as seeded data).
 export const MOCK_ITEMS: Item[] = [
   {
     id: "i1",
-    title: "Classic Denim Jacket",
+    title: "Veste en jean classique",
     brand: "Levi's",
-    price: 35,
-    originalPrice: 120,
+    price: 12000,
+    originalPrice: 35000,
     size: "M",
     condition: "Like new",
     category: "women",
@@ -96,19 +114,19 @@ export const MOCK_ITEMS: Item[] = [
       "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400&q=70",
     ],
     description:
-      "Barely worn Levi's denim jacket in perfect condition. Great for layering. No stains or damage.",
+      "Veste en jean Levi's à peine portée, en parfait état. Idéale à superposer. Aucune tache ni dommage.",
     seller: MOCK_USERS[0]!,
     likesCount: 24,
     viewsCount: 158,
     postedAt: "2024-05-10",
-    color: "Blue",
+    color: "Bleu",
   },
   {
     id: "i2",
-    title: "Elegant Camel Coat",
+    title: "Manteau camel élégant",
     brand: "Zara",
-    price: 55,
-    originalPrice: 180,
+    price: 20000,
+    originalPrice: 55000,
     size: "S",
     condition: "Good",
     category: "women",
@@ -116,7 +134,7 @@ export const MOCK_ITEMS: Item[] = [
       "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=70",
     ],
     description:
-      "Beautiful camel coat, very warm and stylish. Worn a few times last winter.",
+      "Beau manteau camel, chaud et stylé. Porté quelques fois l'hiver dernier.",
     seller: MOCK_USERS[1]!,
     likesCount: 41,
     viewsCount: 302,
@@ -125,30 +143,30 @@ export const MOCK_ITEMS: Item[] = [
   },
   {
     id: "i3",
-    title: "Leather Crossbody Bag",
+    title: "Sac bandoulière en cuir",
     brand: "Mango",
-    price: 28,
-    originalPrice: 79,
-    size: "One Size",
+    price: 9000,
+    originalPrice: 25000,
+    size: "Taille unique",
     condition: "Good",
     category: "bags",
     images: [
       "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=70",
     ],
     description:
-      "Sleek black leather crossbody bag. Adjustable strap, multiple compartments.",
+      "Sac bandoulière en cuir noir épuré. Bandoulière réglable, plusieurs compartiments.",
     seller: MOCK_USERS[2]!,
     likesCount: 18,
     viewsCount: 94,
     postedAt: "2024-05-13",
-    color: "Black",
+    color: "Noir",
   },
   {
     id: "i4",
-    title: "Air Force 1 White",
+    title: "Air Force 1 blanche",
     brand: "Nike",
-    price: 65,
-    originalPrice: 110,
+    price: 25000,
+    originalPrice: 45000,
     size: "38",
     condition: "Like new",
     category: "shoes",
@@ -156,19 +174,19 @@ export const MOCK_ITEMS: Item[] = [
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=70",
     ],
     description:
-      "Nike Air Force 1 in excellent condition. Worn twice. Original box included.",
+      "Nike Air Force 1 en excellent état. Portée deux fois. Boîte d'origine incluse.",
     seller: MOCK_USERS[3]!,
     likesCount: 87,
     viewsCount: 534,
     postedAt: "2024-05-14",
-    color: "White",
+    color: "Blanc",
   },
   {
     id: "i5",
-    title: "Floral Summer Dress",
+    title: "Robe d'été fleurie",
     brand: "H&M",
-    price: 15,
-    originalPrice: 40,
+    price: 5500,
+    originalPrice: 15000,
     size: "XS",
     condition: "Good",
     category: "women",
@@ -176,19 +194,19 @@ export const MOCK_ITEMS: Item[] = [
       "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=70",
     ],
     description:
-      "Light and flowy floral dress, perfect for summer. Machine washable.",
+      "Robe fleurie légère et fluide, parfaite pour l'été. Lavable en machine.",
     seller: MOCK_USERS[4]!,
     likesCount: 33,
     viewsCount: 210,
     postedAt: "2024-05-15",
-    color: "Multicolor",
+    color: "Multicolore",
   },
   {
     id: "i6",
-    title: "Oversized Knit Sweater",
+    title: "Pull oversize en maille",
     brand: "COS",
-    price: 42,
-    originalPrice: 95,
+    price: 15000,
+    originalPrice: 38000,
     size: "L",
     condition: "Like new",
     category: "women",
@@ -196,12 +214,12 @@ export const MOCK_ITEMS: Item[] = [
       "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&q=70",
     ],
     description:
-      "COS oversized cream sweater, incredibly soft and cozy. Perfect condition, only worn once.",
+      "Pull oversize crème COS, incroyablement doux et confortable. Parfait état, porté une seule fois.",
     seller: MOCK_USERS[0]!,
     likesCount: 56,
     viewsCount: 389,
     postedAt: "2024-05-09",
-    color: "Cream",
+    color: "Crème",
   },
 ];
 
@@ -211,13 +229,13 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     buyerId: "u2",
     sellerId: "u1",
     otherUser: MOCK_USERS[1]!,
-    lastMessage: "Is the jacket still available?",
+    lastMessage: "La veste est-elle toujours disponible ?",
     lastMessageAt: "2024-05-15T14:23:00Z",
     unreadCount: 1,
     item: {
       id: "i1",
-      title: "Classic Denim Jacket",
-      price: 35,
+      title: "Veste en jean classique",
+      price: 12000,
       images: [MOCK_ITEMS[0]!.images[0]!],
     },
   },
@@ -226,13 +244,13 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     buyerId: "u1",
     sellerId: "u3",
     otherUser: MOCK_USERS[2]!,
-    lastMessage: "Thank you! It will ship tomorrow.",
+    lastMessage: "Merci ! Je l'envoie demain.",
     lastMessageAt: "2024-05-14T09:10:00Z",
     unreadCount: 0,
     item: {
       id: "i3",
-      title: "Leather Crossbody Bag",
-      price: 28,
+      title: "Sac bandoulière en cuir",
+      price: 9000,
       images: [MOCK_ITEMS[2]!.images[0]!],
     },
   },
@@ -241,13 +259,13 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     buyerId: "u4",
     sellerId: "u1",
     otherUser: MOCK_USERS[3]!,
-    lastMessage: "Can you do 58 for the shoes?",
+    lastMessage: "Vous pouvez faire 22 000 FCFA pour les baskets ?",
     lastMessageAt: "2024-05-13T18:45:00Z",
     unreadCount: 2,
     item: {
       id: "i4",
-      title: "Air Force 1 White",
-      price: 65,
+      title: "Air Force 1 blanche",
+      price: 25000,
       images: [MOCK_ITEMS[3]!.images[0]!],
     },
   },

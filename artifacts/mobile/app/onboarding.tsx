@@ -36,7 +36,7 @@ const SLIDES: Slide[] = [
     id: "discover",
     accentColor: "#00853F",
     image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80",
+      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=900&q=80",
     title: "La mode d'occasion au Sénégal",
     subtitle:
       "Des milliers d'articles de seconde main près de chez vous. Des styles que vous adorez à petits prix.",
@@ -45,7 +45,7 @@ const SLIDES: Slide[] = [
     id: "sell",
     accentColor: "#C84B1C",
     image:
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80",
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80",
     title: "Vendez en quelques minutes",
     subtitle:
       "Prenez une photo, fixez votre prix, publiez. Rejoignez des milliers d'acheteurs et transformez vos vêtements en argent.",
@@ -54,10 +54,10 @@ const SLIDES: Slide[] = [
     id: "trust",
     accentColor: "#F5C518",
     image:
-      "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=900&q=80",
+      "https://images.unsplash.com/photo-1604147495798-57beb5d6af73?w=900&q=80",
     title: "Paiements sécurisés",
     subtitle:
-      "Chaque transaction est protégée. Payez en toute sécurité et bénéficiez de la protection acheteur sur chaque commande.",
+      "Payez avec Wave, Orange Money, Free Money ou en espèces. Vos transactions sont protégées de bout en bout.",
   },
 ];
 
@@ -134,7 +134,7 @@ export default function OnboardingScreen() {
             onPress={() => setStep("intro")}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel="Retour"
           >
             <Feather name="chevron-left" size={22} color="#1a1a1a" />
           </TouchableOpacity>
@@ -143,9 +143,9 @@ export default function OnboardingScreen() {
             onPress={handleSkip}
             style={styles.skipBtn}
             accessibilityRole="button"
-            accessibilityLabel="Skip onboarding"
+            accessibilityLabel="Passer l'introduction"
           >
-            <Text style={[styles.skipText, { color: BRAND }]}>Skip</Text>
+            <Text style={[styles.skipText, { color: BRAND }]}>Passer</Text>
           </TouchableOpacity>
         </View>
 
@@ -154,10 +154,10 @@ export default function OnboardingScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.interestsHeader}>
-            <Text style={styles.interestsTitle}>What are you into?</Text>
+            <Text style={styles.interestsTitle}>Qu'est-ce qui vous plaît ?</Text>
             <Text style={styles.interestsSubtitle}>
-              Pick a few topics so we can personalise your feed. You can change
-              this later in settings.
+              Choisissez quelques thèmes pour personnaliser votre fil. Vous
+              pourrez les modifier plus tard dans les réglages.
             </Text>
           </View>
 
@@ -175,13 +175,13 @@ export default function OnboardingScreen() {
                   onPress={() => toggleInterest(interest.id)}
                   activeOpacity={0.85}
                   accessibilityRole="button"
-                  accessibilityLabel={`${interest.label}${isSelected ? ", selected" : ""}`}
+                  accessibilityLabel={`${interest.label}${isSelected ? ", sélectionné" : ""}`}
                 >
                   <Image
                     source={{ uri: interest.image }}
                     style={styles.tileImage}
                     resizeMode="cover"
-                    accessibilityLabel={`${interest.label} category`}
+                    accessibilityLabel={`Catégorie ${interest.label}`}
                   />
                   <View
                     style={[
@@ -204,16 +204,16 @@ export default function OnboardingScreen() {
         <View style={[styles.footer, { paddingBottom: bottomPad }]}>
           <Text style={styles.selectionCount}>
             {selectedInterests.length === 0
-              ? "Pick at least one to personalise (optional)"
-              : `${selectedInterests.length} selected`}
+              ? "Choisissez-en au moins un pour personnaliser (facultatif)"
+              : `${selectedInterests.length} sélectionné${selectedInterests.length > 1 ? "s" : ""}`}
           </Text>
           <TouchableOpacity
             style={[styles.nextBtn, { backgroundColor: BRAND }]}
             onPress={handleConfirmInterests}
             accessibilityRole="button"
-            accessibilityLabel="Get started"
+            accessibilityLabel="Commencer"
           >
-            <Text style={styles.nextBtnText}>Get started</Text>
+            <Text style={styles.nextBtnText}>Commencer</Text>
             <Feather name="arrow-right" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -256,9 +256,9 @@ export default function OnboardingScreen() {
           onPress={handleSkip}
           style={styles.skipBtn}
           accessibilityRole="button"
-          accessibilityLabel="Skip onboarding"
+          accessibilityLabel="Passer l'introduction"
         >
-          <Text style={[styles.skipText, { color: accent }]}>Skip</Text>
+          <Text style={[styles.skipText, { color: accent }]}>Passer</Text>
         </TouchableOpacity>
       </View>
 
@@ -300,10 +300,10 @@ export default function OnboardingScreen() {
           style={[styles.nextBtn, { backgroundColor: accent }]}
           onPress={handleNext}
           accessibilityRole="button"
-          accessibilityLabel={isLast ? "Choose your interests" : "Next slide"}
+          accessibilityLabel={isLast ? "Choisir vos centres d'intérêt" : "Suivant"}
         >
           <Text style={styles.nextBtnText}>
-            {isLast ? "Choose your interests" : "Continue"}
+            {isLast ? "Choisir mes intérêts" : "Continuer"}
           </Text>
           <Feather name="arrow-right" size={18} color="#fff" />
         </TouchableOpacity>

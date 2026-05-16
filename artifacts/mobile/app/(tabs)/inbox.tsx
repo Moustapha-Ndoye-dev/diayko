@@ -147,7 +147,7 @@ export default function InboxScreen() {
         onPress={() => navigateToConversation(conv)}
         activeOpacity={0.75}
         accessibilityRole="button"
-        accessibilityLabel={`Conversation about ${conv.item?.title ?? "item"}`}
+        accessibilityLabel={`Conversation à propos de ${conv.item?.title ?? "l'article"}`}
       >
         <View style={{ position: "relative" }}>
           <View style={styles.avatar}>
@@ -197,11 +197,11 @@ export default function InboxScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Inbox</Text>
+        <Text style={styles.headerTitle}>Messages</Text>
         <TouchableOpacity
           style={styles.iconBtn}
           accessibilityRole="button"
-          accessibilityLabel="New message"
+          accessibilityLabel="Nouveau message"
         >
           <Feather name="edit" size={18} color={colors.foreground} />
         </TouchableOpacity>
@@ -214,7 +214,7 @@ export default function InboxScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="message-circle"
-            title="No messages yet"
+            title="Aucun message"
             description="Achetez un article ou posez une question pour démarrer une conversation avec Diayko."
           />
         }

@@ -22,7 +22,7 @@ export function SearchBar({
   value,
   onChangeText,
   onSubmit,
-  placeholder = "Search items, brands…",
+  placeholder = "Rechercher articles, marques…",
   editable = true,
   onPress,
 }: SearchBarProps) {

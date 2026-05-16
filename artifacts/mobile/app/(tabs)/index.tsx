@@ -170,7 +170,7 @@ export default function BrowseScreen() {
             <TouchableOpacity
               style={styles.iconBtn}
               accessibilityRole="button"
-              accessibilityLabel="Saved items"
+              accessibilityLabel="Articles sauvegardés"
             >
               <Feather name="bookmark" size={18} color={colors.foreground} />
             </TouchableOpacity>
@@ -203,13 +203,13 @@ export default function BrowseScreen() {
         <Text style={styles.sectionTitle}>
           {selectedCategory === "all"
             ? interestCategories.length > 0
-              ? "For you"
-              : "Latest listings"
+              ? "Pour vous"
+              : "Nouveautés"
             : categoryLabel}
         </Text>
         {!isLoading && (
           <View style={styles.countBadge}>
-            <Text style={styles.countText}>{filtered.length} items</Text>
+            <Text style={styles.countText}>{filtered.length} article{filtered.length > 1 ? "s" : ""}</Text>
           </View>
         )}
       </View>
@@ -236,8 +236,8 @@ export default function BrowseScreen() {
           !isLoading ? (
             <EmptyState
               icon="shopping-bag"
-              title="No items found"
-              description="Try selecting a different category or check back later."
+              title="Aucun article"
+              description="Essayez une autre catégorie ou revenez plus tard."
             />
           ) : null
         }

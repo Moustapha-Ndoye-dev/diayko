@@ -172,9 +172,9 @@ export function SellerGate() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Become a seller</Text>
+        <Text style={styles.title}>Devenir vendeur</Text>
         <Text style={styles.subtitle}>
-          Unlock listings and start selling your wardrobe
+          Débloquez les annonces et commencez à vendre vos vêtements
         </Text>
       </View>
 
@@ -183,10 +183,10 @@ export function SellerGate() {
           <View style={styles.heroIcon}>
             <Feather name="award" size={32} color={colors.primary} />
           </View>
-          <Text style={styles.heroTitle}>Turn your closet into cash</Text>
+          <Text style={styles.heroTitle}>Transformez votre garde-robe en argent</Text>
           <Text style={styles.heroSub}>
-            Join thousands of sellers giving second life to fashion. Verification
-            usually takes less than a minute.
+            Rejoignez des milliers de vendeurs qui donnent une seconde vie à la
+            mode. La vérification prend généralement moins d'une minute.
           </Text>
         </View>
 
@@ -194,8 +194,8 @@ export function SellerGate() {
           <View style={styles.pendingNote}>
             <Feather name="clock" size={16} color={colors.primary} />
             <Text style={styles.pendingText}>
-              Your request is under review. We'll notify you once you're approved
-              — this usually takes a moment.
+              Votre demande est en cours d'examen. Nous vous notifierons dès
+              qu'elle sera approuvée — cela ne prend généralement qu'un instant.
             </Text>
           </View>
         )}
@@ -203,23 +203,23 @@ export function SellerGate() {
         <View style={styles.benefitsCard}>
           <Benefit
             icon="upload-cloud"
-            title="List unlimited items"
-            description="Photos, prices, descriptions — list as much as you want."
+            title="Publiez sans limite"
+            description="Photos, prix, descriptions — publiez autant d'articles que vous voulez."
           />
           <Benefit
             icon="shield"
-            title="Buyer protection"
-            description="We hold payments until the buyer confirms delivery."
+            title="Protection acheteur"
+            description="Nous conservons les paiements jusqu'à la confirmation de la livraison."
           />
           <Benefit
             icon="trending-up"
-            title="Seller analytics"
-            description="Track views, favourites and offers on every listing."
+            title="Statistiques vendeur"
+            description="Suivez vues, favoris et offres sur chacune de vos annonces."
           />
           <Benefit
             icon="message-circle"
-            title="Direct messaging"
-            description="Negotiate offers and answer questions in real time."
+            title="Messagerie directe"
+            description="Négociez les offres et répondez aux questions en temps réel."
           />
         </View>
 
@@ -230,26 +230,27 @@ export function SellerGate() {
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={
-            isPending ? "Request pending" : "Submit seller request"
+            isPending ? "Demande en cours" : "Envoyer la demande de vendeur"
           }
         >
           {isPending ? (
             <>
               <ActivityIndicator size="small" color={colors.foreground} />
               <Text style={[styles.ctaText, styles.ctaTextPending]}>
-                Awaiting approval…
+                En attente d'approbation…
               </Text>
             </>
           ) : (
             <>
-              <Text style={styles.ctaText}>Submit request</Text>
+              <Text style={styles.ctaText}>Envoyer la demande</Text>
               <Feather name="arrow-right" size={18} color="#fff" />
             </>
           )}
         </TouchableOpacity>
 
         <Text style={styles.legal}>
-          By submitting, you agree to our seller terms and our community guidelines.
+          En envoyant votre demande, vous acceptez nos conditions vendeur et
+          les règles de la communauté.
         </Text>
       </View>
     </View>

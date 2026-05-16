@@ -15,11 +15,23 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useApp, toItem } from "@/context/AppContext";
 import { api } from "@/lib/api";
-import { CATEGORIES, SIZES, CONDITIONS } from "@/data/mockData";
+import { CATEGORIES, SIZES, CONDITIONS, conditionLabel, sizeLabel } from "@/data/mockData";
 import { SellFormData } from "@/types";
 import { SellerGate } from "@/components/SellerGate";
 
 const COLORS_LIST = ["Black", "White", "Blue", "Red", "Green", "Yellow", "Brown", "Grey", "Multicolor", "Beige"];
+const COLOR_LABELS: Record<string, string> = {
+  Black: "Noir",
+  White: "Blanc",
+  Blue: "Bleu",
+  Red: "Rouge",
+  Green: "Vert",
+  Yellow: "Jaune",
+  Brown: "Marron",
+  Grey: "Gris",
+  Multicolor: "Multicolore",
+  Beige: "Beige",
+};
 
 export default function SellScreen() {
   const { sellerStatus } = useApp();
@@ -72,7 +84,7 @@ function SellForm() {
         size: form.size,
         condition: form.condition,
         category: form.category,
-        description: form.description.trim() || "No description provided.",
+        description: form.description.trim() || "Aucune description fournie.",
         color: form.color || null,
         sellerId: currentUser.id === "local-user" ? "00000000-0000-0000-0000-000000000000" : currentUser.id,
         images: [],
@@ -89,7 +101,7 @@ function SellForm() {
         size: form.size,
         condition: form.condition as any,
         category: form.category,
-        description: form.description.trim() || "No description provided.",
+        description: form.description.trim() || "Aucune description fournie.",
         color: form.color || null,
         sellerId: MOCK_USERS[0].id,
         likesCount: 0,
@@ -111,7 +123,7 @@ function SellForm() {
     }
     setForm({ title: "", description: "", brand: "", size: "", condition: "Good", category: "women", price: "", color: "" });
     setSubmitting(false);
-    Alert.alert("Listed!", "Your item has been published successfully.");
+    Alert.alert("Publié !", "Votre article a été publié avec succès.");
   };
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -226,7 +238,7 @@ function SellForm() {
           <Text style={styles.label}>Taille <Text style={styles.required}>*</Text></Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: "row", gap: 6 }}>
-              {SIZES.map((s) => chip(s, form.size === s, () => update("size", s)))}
+              {SIZES.map((s) => chip(sizeLabel(s), form.size === s, () => update("size", s)))}
             </View>
           </ScrollView>
         </View>
@@ -234,7 +246,7 @@ function SellForm() {
         <View style={styles.section}>
           <Text style={styles.label}>État <Text style={styles.required}>*</Text></Text>
           <View style={styles.chipRow}>
-            {CONDITIONS.map((c) => chip(c, form.condition === c, () => update("condition", c)))}
+            {CONDITIONS.map((c) => chip(conditionLabel(c), form.condition === c, () => update("condition", c)))}
           </View>
         </View>
 
@@ -242,7 +254,7 @@ function SellForm() {
           <Text style={styles.label}>Couleur</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: "row", gap: 6 }}>
-              {COLORS_LIST.map((c) => chip(c, form.color === c, () => update("color", form.color === c ? "" : c)))}
+              {COLORS_LIST.map((c) => chip(c, form.color === c, () => update("color", form.color === c ? "" : c), COLOR_LABELS[c] ?? c))}
             </View>
           </ScrollView>
         </View>

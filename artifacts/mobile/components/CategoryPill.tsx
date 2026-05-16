@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { Category } from "@/types";
 
@@ -40,9 +40,9 @@ function CategoryPill({ category, selected, onPress }: CategoryPillProps) {
 
   return (
     <TouchableOpacity style={styles.pill} onPress={onPress} activeOpacity={0.7}>
-      <Feather
-        name={category.icon as any}
-        size={14}
+      <Ionicons
+        name={category.icon as keyof typeof Ionicons.glyphMap}
+        size={15}
         color={selected ? colors.primaryForeground : colors.mutedForeground}
       />
       <Text style={styles.label}>{category.label}</Text>

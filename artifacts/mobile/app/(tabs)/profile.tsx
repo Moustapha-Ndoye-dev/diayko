@@ -62,7 +62,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
               color: colors.primary,
             }}
           >
-            Verified seller
+            Vendeur vérifié
           </Text>
           <Text
             style={{
@@ -71,13 +71,13 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
               color: colors.primary,
             }}
           >
-            You can list items from the Sell tab.
+            Vous pouvez publier des articles depuis l'onglet Vendre.
           </Text>
         </View>
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/sell")}
           accessibilityRole="button"
-          accessibilityLabel="Go to Sell"
+          accessibilityLabel="Aller à Vendre"
         >
           <Feather name="chevron-right" size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -131,7 +131,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
               marginBottom: 2,
             }}
           >
-            {isPending ? "REQUEST PENDING" : "SELLER PROGRAM"}
+            {isPending ? "DEMANDE EN COURS" : "PROGRAMME VENDEUR"}
           </Text>
           <Text
             style={{
@@ -141,7 +141,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
               letterSpacing: -0.2,
             }}
           >
-            {isPending ? "Almost there" : "Become a seller"}
+            {isPending ? "Presque terminé" : "Devenir vendeur"}
           </Text>
         </View>
       </View>
@@ -154,8 +154,8 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
         }}
       >
         {isPending
-          ? "Your request is being reviewed. We'll notify you once you're approved."
-          : "Unlock listings, seller analytics and direct messaging. Verification is quick."}
+          ? "Votre demande est en cours d'examen. Nous vous notifierons dès qu'elle sera approuvée."
+          : "Débloquez les annonces, les statistiques vendeur et la messagerie directe. La vérification est rapide."}
       </Text>
       <TouchableOpacity
         onPress={isPending ? () => router.push("/(tabs)/sell") : onRequest}
@@ -167,7 +167,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
           alignItems: "center",
         }}
         accessibilityRole="button"
-        accessibilityLabel={isPending ? "View request status" : "Submit seller request"}
+        accessibilityLabel={isPending ? "Voir l'état de la demande" : "Envoyer la demande"}
       >
         <Text
           style={{
@@ -176,7 +176,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
             color: "#fff",
           }}
         >
-          {isPending ? "View status" : "Submit request"}
+          {isPending ? "Voir l'état" : "Envoyer la demande"}
         </Text>
       </TouchableOpacity>
     </View>
@@ -422,9 +422,9 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={styles.editBtn}
             accessibilityRole="button"
-            accessibilityLabel="Edit profile"
+            accessibilityLabel="Modifier le profil"
           >
-            <Text style={styles.editBtnText}>Edit</Text>
+            <Text style={styles.editBtnText}>Modifier</Text>
           </TouchableOpacity>
         </View>
 
@@ -437,15 +437,15 @@ export default function ProfileScreen() {
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <Text style={styles.statValue}>{currentUser.itemCount}</Text>
-            <Text style={styles.statLabel}>Items</Text>
+            <Text style={styles.statLabel}>Articles</Text>
           </View>
           <View style={styles.stat}>
             <Text style={styles.statValue}>{currentUser.followersCount}</Text>
-            <Text style={styles.statLabel}>Followers</Text>
+            <Text style={styles.statLabel}>Abonnés</Text>
           </View>
           <View style={styles.stat}>
             <Text style={styles.statValue}>{currentUser.followingCount}</Text>
-            <Text style={styles.statLabel}>Following</Text>
+            <Text style={styles.statLabel}>Abonnements</Text>
           </View>
         </View>
       </View>
@@ -513,7 +513,7 @@ export default function ProfileScreen() {
             onPress={() => handleTabChange(tab)}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === tab }}
-            accessibilityLabel={tab === "listings" ? "My listings" : "My favourites"}
+            accessibilityLabel={tab === "listings" ? "Mes annonces" : "Mes favoris"}
           >
             <Text
               style={[
@@ -526,7 +526,7 @@ export default function ProfileScreen() {
                 },
               ]}
             >
-              {tab === "listings" ? "Listings" : "Favourites"}
+              {tab === "listings" ? "Annonces" : "Favoris"}
             </Text>
           </TouchableOpacity>
         ))}
@@ -537,12 +537,12 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My profile</Text>
+        <Text style={styles.headerTitle}>Mon profil</Text>
         <TouchableOpacity
           style={styles.moreBtn}
           onPress={() => router.push("/settings")}
           accessibilityRole="button"
-          accessibilityLabel="Settings"
+          accessibilityLabel="Paramètres"
         >
           <Feather name="settings" size={18} color={colors.foreground} />
         </TouchableOpacity>
@@ -569,13 +569,13 @@ export default function ProfileScreen() {
             icon={effectiveTab === "listings" ? "shopping-bag" : "heart"}
             title={
               effectiveTab === "listings"
-                ? "No listings yet"
-                : "No favourites yet"
+                ? "Aucune annonce"
+                : "Aucun favori"
             }
             description={
               effectiveTab === "listings"
-                ? "Tap the Sell tab to list your first item."
-                : "Heart items you like to save them here."
+                ? "Appuyez sur l'onglet Vendre pour publier votre premier article."
+                : "Ajoutez en favori les articles qui vous plaisent pour les retrouver ici."
             }
           />
         }

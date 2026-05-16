@@ -53,7 +53,7 @@ const PROMO_SLIDES: PromoSlide[] = [
     subtitle: "Articles mis en avant par notre équipe",
     image:
       "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=900&q=80",
-    cta: "Discover",
+    cta: "Découvrir",
     overlay: ["rgba(0,0,0,0.10)", "rgba(0,0,0,0.60)"],
   },
   {
@@ -193,7 +193,7 @@ export function PromoCarousel() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Featured</Text>
+      <Text style={styles.label}>Sélection</Text>
       <ScrollView
         ref={scrollRef}
         horizontal

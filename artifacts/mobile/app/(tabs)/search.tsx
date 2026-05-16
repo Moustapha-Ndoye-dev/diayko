@@ -16,16 +16,16 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { ItemCard } from "@/components/ItemCard";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyState } from "@/components/EmptyState";
-import { SIZES, CONDITIONS } from "@/data/mockData";
+import { SIZES, CONDITIONS, conditionLabel, sizeLabel } from "@/data/mockData";
 import { Item, Condition } from "@/types";
 
 const POPULAR_SEARCHES = [
   "Nike",
   "Zara",
-  "Denim jacket",
-  "Summer dress",
-  "Sneakers",
-  "Vintage",
+  "Veste en jean",
+  "Robe d'été",
+  "Baskets",
+  "Wax",
   "H&M",
   "Levi's",
 ];
@@ -236,12 +236,12 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>Search</Text>
+          <Text style={styles.title}>Recherche</Text>
           <TouchableOpacity
             style={styles.filterBtn}
             onPress={() => setShowFilters((v) => !v)}
             accessibilityRole="button"
-            accessibilityLabel="Toggle filters"
+            accessibilityLabel="Afficher les filtres"
             accessibilityState={{ expanded: showFilters }}
           >
             <Feather
@@ -249,7 +249,7 @@ export default function SearchScreen() {
               size={14}
               color={hasFilters ? colors.primary : colors.foreground}
             />
-            <Text style={styles.filterBtnText}>Filters</Text>
+            <Text style={styles.filterBtnText}>Filtres</Text>
             {hasFilters && (
               <View
                 style={{
@@ -265,27 +265,27 @@ export default function SearchScreen() {
         <SearchBar
           value={query}
           onChangeText={setQuery}
-          placeholder="Search items, brands…"
+          placeholder="Rechercher articles, marques…"
         />
       </View>
 
       {showFilters && (
         <View style={styles.filtersPanel}>
           <View style={styles.filterGroup}>
-            <Text style={styles.filterLabel}>Size</Text>
+            <Text style={styles.filterLabel}>Taille</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 6 }}>
                 {SIZES.map((s) =>
-                  chip(s, filters.size === s, () => setSize(s))
+                  chip(sizeLabel(s), filters.size === s, () => setSize(s))
                 )}
               </View>
             </ScrollView>
           </View>
           <View style={styles.filterGroup}>
-            <Text style={styles.filterLabel}>Condition</Text>
+            <Text style={styles.filterLabel}>État</Text>
             <View style={styles.chipRow}>
               {CONDITIONS.map((c) =>
-                chip(c, filters.condition === c, () => setCondition(c))
+                chip(conditionLabel(c), filters.condition === c, () => setCondition(c))
               )}
             </View>
           </View>
@@ -294,9 +294,9 @@ export default function SearchScreen() {
               style={styles.clearBtn}
               onPress={clearFilters}
               accessibilityRole="button"
-              accessibilityLabel="Clear filters"
+              accessibilityLabel="Effacer les filtres"
             >
-              <Text style={styles.clearText}>Clear filters</Text>
+              <Text style={styles.clearText}>Effacer les filtres</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -304,7 +304,7 @@ export default function SearchScreen() {
 
       {!isSearching ? (
         <View style={styles.popular}>
-          <Text style={styles.popularTitle}>Popular searches</Text>
+          <Text style={styles.popularTitle}>Recherches populaires</Text>
           <View style={styles.tagRow}>
             {POPULAR_SEARCHES.map((s) => (
               <TouchableOpacity
@@ -312,7 +312,7 @@ export default function SearchScreen() {
                 style={styles.tag}
                 onPress={() => setQuery(s)}
                 accessibilityRole="button"
-                accessibilityLabel={`Search for ${s}`}
+                accessibilityLabel={`Rechercher ${s}`}
               >
                 <Text style={styles.tagText}>{s}</Text>
               </TouchableOpacity>
@@ -335,7 +335,7 @@ export default function SearchScreen() {
           )}
           ListHeaderComponent={
             <View style={styles.resultsHeader}>
-              <Text style={styles.resultsCount}>{results.length} results</Text>
+              <Text style={styles.resultsCount}>{results.length} résultat{results.length > 1 ? "s" : ""}</Text>
             </View>
           }
           contentContainerStyle={styles.grid}
@@ -343,9 +343,9 @@ export default function SearchScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="search"
-              title="No results"
-              description="Try a different search term or adjust your filters."
-              actionLabel={hasFilters ? "Clear filters" : undefined}
+              title="Aucun résultat"
+              description="Essayez un autre terme de recherche ou ajustez vos filtres."
+              actionLabel={hasFilters ? "Effacer les filtres" : undefined}
               onAction={hasFilters ? clearFilters : undefined}
             />
           }

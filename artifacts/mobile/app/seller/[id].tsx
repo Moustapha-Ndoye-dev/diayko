@@ -80,18 +80,18 @@ export default function SellerProfileScreen() {
           style={styles.backBtn}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel="Retour"
         >
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Seller profile</Text>
+        <Text style={styles.headerTitle}>Profil vendeur</Text>
       </View>
 
       <View style={styles.body}>
         <View style={styles.iconCircle}>
           <Feather name="shield" size={32} color={colors.primary} />
         </View>
-        <Text style={styles.title}>Seller identity protected</Text>
+        <Text style={styles.title}>Identité vendeur protégée</Text>
         <Text style={styles.subtitle}>
           Sur Diayko, chaque article est vendu via notre marketplace sécurisée. Les
           identités des vendeurs restent privées pour protéger acheteurs et vendeurs.
@@ -104,9 +104,9 @@ export default function SellerProfileScreen() {
           style={styles.goBackBtn}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back to browsing"
+          accessibilityLabel="Retour à la navigation"
         >
-          <Text style={styles.goBackText}>Back to browsing</Text>
+          <Text style={styles.goBackText}>Retour à la navigation</Text>
         </TouchableOpacity>
       </View>
     </View>

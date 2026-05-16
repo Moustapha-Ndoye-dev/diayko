@@ -138,10 +138,10 @@ export default function SettingsScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleLogOut = () => {
-    Alert.alert("Log out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("Déconnexion", "Voulez-vous vraiment vous déconnecter ?", [
+      { text: "Annuler", style: "cancel" },
       {
-        text: "Log out",
+        text: "Déconnexion",
         style: "destructive",
         onPress: async () => {
           await storage.onboarding.reset();
@@ -198,92 +198,92 @@ export default function SettingsScreen() {
           style={styles.backBtn}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel="Retour"
         >
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>Paramètres</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <SectionHeader title="Account" />
+        <SectionHeader title="Compte" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="user" label="Edit profile" onPress={() => {}} />
-          <SettingsItem icon="mail" label="Email address" value="sophie@example.com" onPress={() => {}} />
-          <SettingsItem icon="lock" label="Change password" onPress={() => {}} />
-          <SettingsItem icon="credit-card" label="Payment methods" onPress={() => {}} />
-          <SettingsItem icon="map-pin" label="Shipping address" onPress={() => {}} />
+          <SettingsItem icon="user" label="Modifier le profil" onPress={() => {}} />
+          <SettingsItem icon="mail" label="Adresse e-mail" value="sophie@example.com" onPress={() => {}} />
+          <SettingsItem icon="lock" label="Changer le mot de passe" onPress={() => {}} />
+          <SettingsItem icon="credit-card" label="Moyens de paiement" onPress={() => {}} />
+          <SettingsItem icon="map-pin" label="Adresse de livraison" onPress={() => {}} />
         </View>
 
         <SectionHeader title="Notifications" />
         <View style={styles.sectionBorder}>
           <SettingsItem
             icon="bell"
-            label="Push notifications"
+            label="Notifications push"
             showArrow={false}
             rightElement={
               <Switch
                 value={pushEnabled}
                 onValueChange={setPushEnabled}
                 trackColor={{ true: colors.primary }}
-                accessibilityLabel="Toggle push notifications"
+                accessibilityLabel="Activer les notifications push"
               />
             }
           />
           <SettingsItem
             icon="mail"
-            label="Email notifications"
+            label="Notifications par e-mail"
             showArrow={false}
             rightElement={
               <Switch
                 value={emailEnabled}
                 onValueChange={setEmailEnabled}
                 trackColor={{ true: colors.primary }}
-                accessibilityLabel="Toggle email notifications"
+                accessibilityLabel="Activer les notifications par e-mail"
               />
             }
           />
           <SettingsItem
             icon="message-square"
-            label="SMS notifications"
+            label="Notifications SMS"
             showArrow={false}
             rightElement={
               <Switch
                 value={smsEnabled}
                 onValueChange={setSmsEnabled}
                 trackColor={{ true: colors.primary }}
-                accessibilityLabel="Toggle SMS notifications"
+                accessibilityLabel="Activer les notifications SMS"
               />
             }
           />
         </View>
 
-        <SectionHeader title="Privacy" />
+        <SectionHeader title="Confidentialité" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="eye" label="Profile visibility" value="Public" onPress={() => {}} />
-          <SettingsItem icon="shield" label="Data & privacy" onPress={() => {}} />
-          <SettingsItem icon="download" label="Download my data" onPress={() => {}} />
+          <SettingsItem icon="eye" label="Visibilité du profil" value="Publique" onPress={() => {}} />
+          <SettingsItem icon="shield" label="Données et confidentialité" onPress={() => {}} />
+          <SettingsItem icon="download" label="Télécharger mes données" onPress={() => {}} />
         </View>
 
         <SectionHeader title="Support" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="help-circle" label="Help center" onPress={() => {}} />
-          <SettingsItem icon="message-circle" label="Contact support" onPress={() => {}} />
-          <SettingsItem icon="flag" label="Report a problem" onPress={() => {}} />
+          <SettingsItem icon="help-circle" label="Centre d'aide" onPress={() => {}} />
+          <SettingsItem icon="message-circle" label="Contacter le support" onPress={() => {}} />
+          <SettingsItem icon="flag" label="Signaler un problème" onPress={() => {}} />
         </View>
 
-        <SectionHeader title="About" />
+        <SectionHeader title="À propos" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="file-text" label="Terms of service" onPress={() => {}} />
-          <SettingsItem icon="shield" label="Privacy policy" onPress={() => {}} />
+          <SettingsItem icon="file-text" label="Conditions d'utilisation" onPress={() => {}} />
+          <SettingsItem icon="shield" label="Politique de confidentialité" onPress={() => {}} />
           <SettingsItem icon="info" label="Licences" onPress={() => {}} />
         </View>
 
-        <SectionHeader title="Account actions" />
+        <SectionHeader title="Actions du compte" />
         <View style={styles.sectionBorder}>
           <SettingsItem
             icon="log-out"
-            label="Log out"
+            label="Se déconnecter"
             destructive
             showArrow={false}
             onPress={handleLogOut}

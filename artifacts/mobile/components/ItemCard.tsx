@@ -161,7 +161,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
           onPress={handleLike}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
-          accessibilityLabel={liked ? "Remove from favourites" : "Add to favourites"}
+          accessibilityLabel={liked ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
           <Feather
             name="heart"

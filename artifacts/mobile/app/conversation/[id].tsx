@@ -118,7 +118,7 @@ export default function ConversationScreen() {
       ];
       setMessagesState({ status: "success", data: chatMsgs });
     } catch {
-      setMessagesState({ status: "error", message: "Failed to load messages" });
+      setMessagesState({ status: "error", message: "Impossible de charger les messages" });
     }
   }, [id, initialMessage]);
 
@@ -359,7 +359,7 @@ export default function ConversationScreen() {
           style={styles.backBtn}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel="Retour"
         >
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
@@ -372,7 +372,7 @@ export default function ConversationScreen() {
           </Text>
           <Text style={styles.headerSub}>{PLATFORM_STATUS}</Text>
         </View>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="More options">
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Plus d'options">
           <Feather name="more-horizontal" size={22} color={colors.foreground} />
         </TouchableOpacity>
       </View>
@@ -434,14 +434,14 @@ export default function ConversationScreen() {
           multiline
           returnKeyType="send"
           onSubmitEditing={handleSend}
-          accessibilityLabel="Message input"
+          accessibilityLabel="Champ de saisie du message"
         />
         <TouchableOpacity
           style={[styles.sendBtn, !canSend && styles.sendBtnDisabled]}
           onPress={handleSend}
           disabled={!canSend}
           accessibilityRole="button"
-          accessibilityLabel="Send message"
+          accessibilityLabel="Envoyer le message"
         >
           {isSending ? (
             <ActivityIndicator size="small" color="#fff" />

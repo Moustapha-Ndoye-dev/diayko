@@ -33,16 +33,16 @@ const MOCK_NOTIFICATIONS: AppNotification[] = [
   {
     id: "n1",
     type: "message",
-    title: "New message from Emma Wilson",
-    body: "Is the jacket still available?",
+    title: "Nouveau message de Diayko",
+    body: "La veste est-elle toujours disponible ?",
     isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
   },
   {
     id: "n2",
     type: "like",
-    title: "Someone liked your item",
-    body: 'Your "Classic Denim Jacket" received a new like.',
+    title: "Quelqu'un a aimé votre article",
+    body: "Votre « Veste en jean classique » a reçu un nouveau like.",
     isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     itemId: "i1",
@@ -50,8 +50,8 @@ const MOCK_NOTIFICATIONS: AppNotification[] = [
   {
     id: "n3",
     type: "price_drop",
-    title: "Price drop on a saved item",
-    body: '"Air Force 1 White" de 75 000 FCFA à 65 000 FCFA.',
+    title: "Baisse de prix sur un article suivi",
+    body: "« Air Force 1 blanche » de 45 000 FCFA à 25 000 FCFA.",
     isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     itemId: "i4",
@@ -59,16 +59,16 @@ const MOCK_NOTIFICATIONS: AppNotification[] = [
   {
     id: "n4",
     type: "sale",
-    title: "Summer Sale is live",
-    body: "Up to 70% off on selected items. Don't miss out!",
+    title: "Les soldes sont lancées",
+    body: "Jusqu'à -70% sur une sélection d'articles. Ne ratez pas ça !",
     isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
   },
   {
     id: "n5",
     type: "order",
-    title: "Order confirmed",
-    body: "Your purchase of the Camel Coat is confirmed. The seller will ship soon.",
+    title: "Commande confirmée",
+    body: "Votre achat du Manteau camel est confirmé. L'envoi est prévu prochainement.",
     isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
   },
@@ -77,11 +77,12 @@ const MOCK_NOTIFICATIONS: AppNotification[] = [
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `il y a ${mins} min`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `il y a ${hours} h`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `il y a ${days} j`;
 }
 
 export default function NotificationsScreen() {
@@ -240,7 +241,7 @@ export default function NotificationsScreen() {
           style={styles.backBtn}
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel="Retour"
         >
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
@@ -250,9 +251,9 @@ export default function NotificationsScreen() {
             style={styles.markAllBtn}
             onPress={markAllRead}
             accessibilityRole="button"
-            accessibilityLabel="Mark all as read"
+            accessibilityLabel="Tout marquer comme lu"
           >
-            <Text style={styles.markAllText}>Mark all read</Text>
+            <Text style={styles.markAllText}>Tout marquer lu</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -265,8 +266,8 @@ export default function NotificationsScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Feather name="bell-off" size={48} color={colors.border} />
-            <Text style={styles.emptyTitle}>No notifications</Text>
-            <Text style={styles.emptyText}>You're all caught up!</Text>
+            <Text style={styles.emptyTitle}>Aucune notification</Text>
+            <Text style={styles.emptyText}>Vous êtes à jour !</Text>
           </View>
         }
         ListFooterComponent={<View style={styles.listFooter} />}
