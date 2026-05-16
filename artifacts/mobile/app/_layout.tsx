@@ -1,0 +1,104 @@
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import React, { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AppProvider } from "@/context/AppContext";
+import { AuthProvider } from "@/lib/auth";
+
+SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
+
+function RootLayoutNav() {
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="onboarding"
+        options={{ gestureEnabled: false, animation: "fade" }}
+      />
+      <Stack.Screen
+        name="item/[id]"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="conversation/[id]"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="seller/[id]"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="notifications"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="settings"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen name="favorites" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="deliveries" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="edit-profile" options={{ animation: "slide_from_bottom" }} />
+      <Stack.Screen name="help" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="seller-stats" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="promotion/[id]" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="legal/[slug]" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
+
+  return (
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <AppProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </AppProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
+  );
+}
