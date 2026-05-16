@@ -400,12 +400,7 @@ paths:
     get:
       operationId: listConversations
       tags: [conversations]
-      summary: List conversations for a user
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema: { type: string, format: uuid }
+      summary: List conversations for the authenticated user
       responses:
         "200":
           description: Conversations list
@@ -682,11 +677,7 @@ components:
 
     LikeBody:
       type: object
-      properties:
-        userId:
-          type: string
-          format: uuid
-      required: [userId]
+      properties: {}
 
     LikeResponse:
       type: object
@@ -786,9 +777,6 @@ components:
     CreateConversationBody:
       type: object
       properties:
-        buyerId:
-          type: string
-          format: uuid
         sellerId:
           type: string
           format: uuid
@@ -798,7 +786,7 @@ components:
           nullable: true
         initialMessage:
           type: string
-      required: [buyerId, sellerId]
+      required: [sellerId]
 
     Message:
       type: object
@@ -822,10 +810,7 @@ components:
     SendMessageBody:
       type: object
       properties:
-        senderId:
-          type: string
-          format: uuid
         text:
           type: string
           minLength: 1
-      required: [senderId, text]
+      required: [text]

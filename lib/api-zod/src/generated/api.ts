@@ -251,8 +251,8 @@ export const LikeItemParams = zod.object({
 })
 
 export const LikeItemBody = zod.object({
-  "userId": zod.string().uuid()
-})
+
+}).passthrough()
 
 export const LikeItemResponse = zod.object({
   "liked": zod.boolean(),
@@ -346,12 +346,8 @@ export const GetUserItemsResponse = zod.object({
 
 
 /**
- * @summary List conversations for a user
+ * @summary List conversations for the authenticated user
  */
-export const ListConversationsQueryParams = zod.object({
-  "userId": zod.coerce.string().uuid()
-})
-
 export const ListConversationsResponseItem = zod.object({
   "id": zod.string().uuid(),
   "buyerId": zod.string().uuid(),
@@ -398,7 +394,6 @@ export const ListConversationsResponse = zod.array(ListConversationsResponseItem
  * @summary Start a conversation
  */
 export const CreateConversationBody = zod.object({
-  "buyerId": zod.string().uuid(),
   "sellerId": zod.string().uuid(),
   "itemId": zod.string().uuid().nullish(),
   "initialMessage": zod.string().optional()
@@ -433,7 +428,6 @@ export const SendMessageParams = zod.object({
 
 
 export const SendMessageBody = zod.object({
-  "senderId": zod.string().uuid(),
   "text": zod.string().min(1)
 })
 

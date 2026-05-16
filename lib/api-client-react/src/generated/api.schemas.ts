@@ -139,9 +139,7 @@ export interface ViewCountResponse {
   viewsCount: number;
 }
 
-export interface LikeBody {
-  userId: string;
-}
+export interface LikeBody { [key: string]: unknown }
 
 export interface LikeResponse {
   liked: boolean;
@@ -174,7 +172,6 @@ export interface Conversation {
 }
 
 export interface CreateConversationBody {
-  buyerId: string;
   sellerId: string;
   itemId?: string | null;
   initialMessage?: string;
@@ -189,7 +186,6 @@ export interface Message {
 }
 
 export interface SendMessageBody {
-  senderId: string;
   /** @minLength 1 */
   text: string;
 }
@@ -223,9 +219,5 @@ limit?: number;
 export type GetUserItemsParams = {
 page?: number;
 limit?: number;
-};
-
-export type ListConversationsParams = {
-userId: string;
 };
 

@@ -37,7 +37,6 @@ import type {
   ItemListResponse,
   LikeBody,
   LikeResponse,
-  ListConversationsParams,
   ListItemsParams,
   LogoutSuccess,
   Message,
@@ -1436,27 +1435,20 @@ export function useGetUserItems<TData = Awaited<ReturnType<typeof getUserItems>>
 
 
 
-export const getListConversationsUrl = (params: ListConversationsParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getListConversationsUrl = () => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
 
-  const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/conversations?${stringifiedParams}` : `/api/conversations`
+  return `/api/conversations`
 }
 
 /**
- * @summary List conversations for a user
+ * @summary List conversations for the authenticated user
  */
-export const listConversations = async (params: ListConversationsParams, options?: RequestInit): Promise<Conversation[]> => {
+export const listConversations = async ( options?: RequestInit): Promise<Conversation[]> => {
 
-  return customFetch<Conversation[]>(getListConversationsUrl(params),
+  return customFetch<Conversation[]>(getListConversationsUrl(),
   {
     ...options,
     method: 'GET'
@@ -1469,23 +1461,23 @@ export const listConversations = async (params: ListConversationsParams, options
 
 
 
-export const getListConversationsQueryKey = (params?: ListConversationsParams,) => {
+export const getListConversationsQueryKey = () => {
     return [
-    `/api/conversations`, ...(params ? [params] : [])
+    `/api/conversations`
     ] as const;
     }
 
 
-export const getListConversationsQueryOptions = <TData = Awaited<ReturnType<typeof listConversations>>, TError = ErrorType<unknown>>(params: ListConversationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListConversationsQueryOptions = <TData = Awaited<ReturnType<typeof listConversations>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListConversationsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getListConversationsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConversations>>> = ({ signal }) => listConversations(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConversations>>> = ({ signal }) => listConversations({ signal, ...requestOptions });
 
 
 
@@ -1499,15 +1491,15 @@ export type ListConversationsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List conversations for a user
+ * @summary List conversations for the authenticated user
  */
 
 export function useListConversations<TData = Awaited<ReturnType<typeof listConversations>>, TError = ErrorType<unknown>>(
- params: ListConversationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListConversationsQueryOptions(params,options)
+  const queryOptions = getListConversationsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -1,6 +1,7 @@
 import * as oidc from "openid-client";
 import { type Request, type Response, type NextFunction } from "express";
 import type { User } from "@workspace/db";
+import { HttpError } from "./errorHandler";
 import {
   clearSession,
   getOidcConfig,
@@ -107,5 +108,17 @@ export async function authMiddleware(
   }
 
   req.user = toExpressUser(userRow);
+  next();
+}
+
+export function requireAuth(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  if (!req.isAuthenticated()) {
+    next(new HttpError(401, "Authentication required"));
+    return;
+  }
   next();
 }

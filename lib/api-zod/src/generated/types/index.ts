@@ -27,7 +27,6 @@ export * from './itemDetail';
 export * from './itemListResponse';
 export * from './likeBody';
 export * from './likeResponse';
-export * from './listConversationsParams';
 export * from './listItemsParams';
 export * from './logoutSuccess';
 export * from './message';

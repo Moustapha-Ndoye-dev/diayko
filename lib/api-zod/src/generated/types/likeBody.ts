@@ -6,6 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface LikeBody {
-  userId: string;
-}
+export interface LikeBody { [key: string]: unknown }

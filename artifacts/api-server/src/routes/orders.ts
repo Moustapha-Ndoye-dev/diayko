@@ -14,6 +14,7 @@ import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { HttpError } from "../middlewares/errorHandler";
+import { requireAuth } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 const idParams = z.object({ id: z.string().uuid() });
@@ -33,6 +34,7 @@ const listQuery = z.object({
 
 router.get(
   "/orders",
+  requireAuth,
   asyncHandler(async (req, res) => {
     if (!req.isAuthenticated()) {
       throw new HttpError(401, "Authentication required");
@@ -88,7 +90,12 @@ router.get(
 
 router.get(
   "/orders/:id",
+  requireAuth,
   asyncHandler(async (req, res) => {
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
+    const userId = req.user.id;
     const { id } = idParams.parse(req.params);
     const rows = await db
       .select({
@@ -104,6 +111,9 @@ router.get(
 
     if (rows.length === 0) throw new HttpError(404, "Order not found");
     const row = rows[0]!;
+    if (row.order.buyerId !== userId && row.order.sellerId !== userId) {
+      throw new HttpError(404, "Order not found");
+    }
 
     const [images, events] = await Promise.all([
       db
@@ -135,6 +145,7 @@ const createBody = z.object({
 
 router.post(
   "/orders",
+  requireAuth,
   asyncHandler(async (req, res) => {
     if (!req.isAuthenticated()) {
       throw new HttpError(401, "Authentication required");
@@ -194,9 +205,24 @@ const updateStatusBody = z.object({ status: z.enum(orderStatus) });
 
 router.patch(
   "/orders/:id/status",
+  requireAuth,
   asyncHandler(async (req, res) => {
+    if (!req.isAuthenticated()) {
+      throw new HttpError(401, "Authentication required");
+    }
+    const userId = req.user.id;
     const { id } = idParams.parse(req.params);
     const { status } = updateStatusBody.parse(req.body);
+
+    const [existing] = await db
+      .select()
+      .from(ordersTable)
+      .where(eq(ordersTable.id, id))
+      .limit(1);
+    if (!existing) throw new HttpError(404, "Order not found");
+    if (existing.buyerId !== userId && existing.sellerId !== userId) {
+      throw new HttpError(404, "Order not found");
+    }
 
     // Atomic: status change + timeline updates must succeed together.
     const updated = await db.transaction(async (tx) => {

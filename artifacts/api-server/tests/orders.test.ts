@@ -87,6 +87,7 @@ describe("Orders API", () => {
       .send({ itemId: item2.id, paymentMethod: "orange_money" });
     await request(app)
       .patch(`/api/orders/${second.body.id}/status`)
+      .set("Authorization", bearer(sellerSid))
       .send({ status: "delivered" });
 
     const asBuyer = await request(app)
@@ -118,6 +119,7 @@ describe("Orders API", () => {
 
     const patch = await request(app)
       .patch(`/api/orders/${create.body.id}/status`)
+      .set("Authorization", bearer(buyerSid))
       .send({ status: "in_transit" });
     expect(patch.status).toBe(200);
     expect(patch.body.status).toBe("in_transit");
@@ -153,8 +155,11 @@ describe("Orders API", () => {
   });
 
   it("PATCH /api/orders/:id/status returns 404 for unknown order", async () => {
+    const u = await makeUser("U");
+    const sid = await makeSession(u.id);
     const res = await request(app)
       .patch("/api/orders/11111111-1111-1111-1111-111111111111/status")
+      .set("Authorization", bearer(sid))
       .send({ status: "delivered" });
     expect(res.status).toBe(404);
   });
@@ -170,8 +175,58 @@ describe("Orders API", () => {
       .send({ itemId: item.id, paymentMethod: "wave" });
     const res = await request(app)
       .patch(`/api/orders/${create.body.id}/status`)
+      .set("Authorization", bearer(buyerSid))
       .send({ status: "lost" });
     expect(res.status).toBe(400);
+  });
+
+  it("GET /api/orders/:id requires authentication", async () => {
+    const res = await request(app).get(
+      "/api/orders/11111111-1111-1111-1111-111111111111",
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("GET /api/orders/:id hides orders of other users", async () => {
+    const seller = await makeUser("Seller");
+    const buyer = await makeUser("Buyer");
+    const stranger = await makeUser("Stranger");
+    const item = await makeItem(seller.id);
+    const buyerSid = await makeSession(buyer.id);
+    const strangerSid = await makeSession(stranger.id);
+    const create = await request(app)
+      .post("/api/orders")
+      .set("Authorization", bearer(buyerSid))
+      .send({ itemId: item.id, paymentMethod: "wave" });
+    const res = await request(app)
+      .get(`/api/orders/${create.body.id}`)
+      .set("Authorization", bearer(strangerSid));
+    expect(res.status).toBe(404);
+  });
+
+  it("PATCH /api/orders/:id/status requires authentication", async () => {
+    const res = await request(app)
+      .patch("/api/orders/11111111-1111-1111-1111-111111111111/status")
+      .send({ status: "delivered" });
+    expect(res.status).toBe(401);
+  });
+
+  it("PATCH /api/orders/:id/status forbids non-participants", async () => {
+    const seller = await makeUser("Seller");
+    const buyer = await makeUser("Buyer");
+    const stranger = await makeUser("Stranger");
+    const item = await makeItem(seller.id);
+    const buyerSid = await makeSession(buyer.id);
+    const strangerSid = await makeSession(stranger.id);
+    const create = await request(app)
+      .post("/api/orders")
+      .set("Authorization", bearer(buyerSid))
+      .send({ itemId: item.id, paymentMethod: "wave" });
+    const res = await request(app)
+      .patch(`/api/orders/${create.body.id}/status`)
+      .set("Authorization", bearer(strangerSid))
+      .send({ status: "in_transit" });
+    expect(res.status).toBe(404);
   });
 
   it("PATCH /api/orders/:id/status preserves occurredAt of already-done events", async () => {
@@ -192,6 +247,7 @@ describe("Orders API", () => {
     await new Promise((r) => setTimeout(r, 30));
     await request(app)
       .patch(`/api/orders/${create.body.id}/status`)
+      .set("Authorization", bearer(buyerSid))
       .send({ status: "in_transit" });
 
     const after = await request(app)
