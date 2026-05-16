@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
-import { storage } from "@/lib/storage";
+import { useAuth } from "@/lib/auth";
 
 interface SettingsItemProps {
   icon: string;
@@ -130,6 +130,7 @@ export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { logout } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
@@ -151,8 +152,7 @@ export default function SettingsScreen() {
         text: "Déconnexion",
         style: "destructive",
         onPress: async () => {
-          await storage.onboarding.reset();
-          router.replace("/onboarding");
+          await logout();
         },
       },
     ]);

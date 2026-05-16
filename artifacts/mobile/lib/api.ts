@@ -215,11 +215,12 @@ export const api = {
       }),
   },
   orders: {
-    list: (params: { userId: string; status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
-      const qs = new URLSearchParams({ userId: params.userId });
-      if (params.status) qs.set("status", params.status);
-      if (params.role) qs.set("role", params.role);
-      return request<{ orders: ApiOrder[] }>(`/orders?${qs.toString()}`);
+    list: (params?: { status?: ApiOrderStatus; role?: "buyer" | "seller" | "any" }) => {
+      const qs = new URLSearchParams();
+      if (params?.status) qs.set("status", params.status);
+      if (params?.role) qs.set("role", params.role);
+      const query = qs.toString();
+      return request<{ orders: ApiOrder[] }>(`/orders${query ? `?${query}` : ""}`);
     },
     get: (id: string) => request<ApiOrderDetail>(`/orders/${id}`),
     create: (body: {

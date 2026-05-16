@@ -16,7 +16,6 @@ import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { fcfa } from "@/lib/currency";
 import { api, ApiOrder, ApiOrderStatus, ApiPaymentMethod } from "@/lib/api";
-import { useApp } from "@/context/AppContext";
 
 const STATUS_CONFIG: Record<ApiOrderStatus, { label: string; color: string; icon: string }> = {
   delivered: { label: "Livré", color: "#00853F", icon: "check-circle" },
@@ -47,7 +46,6 @@ export default function MyPurchasesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { currentUser } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -67,7 +65,7 @@ export default function MyPurchasesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentUser.id]);
+  }, []);
 
   useEffect(() => {
     load();

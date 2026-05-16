@@ -16,7 +16,6 @@ import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { fcfa } from "@/lib/currency";
 import { api, ApiOrderDetail } from "@/lib/api";
-import { useApp } from "@/context/AppContext";
 
 function formatEventDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -36,7 +35,6 @@ export default function DeliveriesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { currentUser } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -61,7 +59,7 @@ export default function DeliveriesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentUser.id]);
+  }, []);
 
   useEffect(() => {
     load();

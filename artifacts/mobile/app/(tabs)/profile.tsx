@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/lib/auth";
 import { ItemCard } from "@/components/ItemCard";
 import { StarRating } from "@/components/StarRating";
 import { EmptyState } from "@/components/EmptyState";
@@ -255,6 +256,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { currentUser, items, favorites, sellerStatus, requestSellerAccess } = useApp();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>("listings");
 
   const comingSoon = (label?: string) =>
@@ -263,6 +265,19 @@ export default function ProfileScreen() {
       "Cette fonctionnalité sera disponible dans une prochaine mise à jour.",
       [{ text: "OK" }]
     );
+
+  const handleLogout = useCallback(() => {
+    Alert.alert("Déconnexion", "Voulez-vous vraiment vous déconnecter ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Déconnexion",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+        },
+      },
+    ]);
+  }, [logout]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 64;
@@ -510,6 +525,11 @@ export default function ProfileScreen() {
           icon="sliders"
           label="Paramètres"
           onPress={() => router.push("/settings")}
+        />
+        <MenuItem
+          icon="log-out"
+          label="Se déconnecter"
+          onPress={handleLogout}
         />
       </View>
 
