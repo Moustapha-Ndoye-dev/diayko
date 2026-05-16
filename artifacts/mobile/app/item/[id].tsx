@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   Share,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -480,11 +481,16 @@ export default function ItemDetailScreen() {
         animationType="slide"
         onRequestClose={() => setOfferModal(false)}
       >
-        <TouchableOpacity
+        <KeyboardAvoidingView
           style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setOfferModal(false)}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
         >
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => setOfferModal(false)}
+          />
           <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
             <Text style={styles.modalTitle}>Faire une offre</Text>
             <Text style={styles.modalSub}>
@@ -521,7 +527,7 @@ export default function ItemDetailScreen() {
               <Text style={styles.cancelBtnText}>Annuler</Text>
             </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
