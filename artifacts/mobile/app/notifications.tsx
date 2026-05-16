@@ -51,7 +51,7 @@ const MOCK_NOTIFICATIONS: AppNotification[] = [
     id: "n3",
     type: "price_drop",
     title: "Price drop on a saved item",
-    body: '"Air Force 1 White" dropped from €75 to €65.',
+    body: '"Air Force 1 White" de 75 000 FCFA à 65 000 FCFA.',
     isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     itemId: "i4",

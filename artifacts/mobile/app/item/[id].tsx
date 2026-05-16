@@ -59,16 +59,16 @@ export default function ItemDetailScreen() {
   const handleBuy = useCallback(async () => {
     setIsBuying(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 600));
     setIsBuying(false);
+    // Navigate to the full checkout flow (FCFA, Senegalese payment methods).
     router.push({
-      pathname: "/conversation/[id]",
+      pathname: "/checkout/[id]",
       params: {
-        id: `${PLATFORM_CONV_ID_PREFIX}${id}`,
+        id: id ?? "",
         itemTitle: item?.title ?? "",
         itemPrice: String(item?.price ?? ""),
         itemImage: item?.images[0] ?? "",
-        initialMessage: `Votre commande pour "${item?.title}" a été confirmée ! Le paiement est sécurisé par Diayko. Vous serez notifié(e) dès l'expédition.`,
       },
     });
   }, [id, item, router]);
@@ -91,7 +91,7 @@ export default function ItemDetailScreen() {
         itemTitle: item.title,
         itemPrice: String(item.price),
         itemImage: item.images[0] ?? "",
-        initialMessage: `💬 Offre de ${amount} € pour "${item.title}" (prix affiché : ${item.price} €). Votre offre a été transmise.`,
+        initialMessage: `💬 Offre de ${amount} FCFA pour "${item.title}" (prix affiché : ${item.price} FCFA). Votre offre a été transmise à Diayko.`,
       },
     });
   }, [offerAmount, item, id, router]);
@@ -344,9 +344,9 @@ export default function ItemDetailScreen() {
 
         <View style={styles.content}>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{item.price} €</Text>
+            <Text style={styles.price}>{item.price} FCFA</Text>
             {item.originalPrice != null && (
-              <Text style={styles.originalPrice}>{item.originalPrice} €</Text>
+              <Text style={styles.originalPrice}>{item.originalPrice} FCFA</Text>
             )}
             {discountPct !== null && discountPct >= 20 && (
               <Text style={styles.discountBadge}>-{discountPct}%</Text>
@@ -396,7 +396,7 @@ export default function ItemDetailScreen() {
 
           {/* ── Platform trust block (replaces seller identity) ─────────────── */}
           <View>
-            <Text style={styles.sectionTitle}>Sold by</Text>
+            <Text style={styles.sectionTitle}>Vendu par</Text>
             <View style={styles.trustCard}>
               <View style={styles.trustRow}>
                 <View style={styles.trustAvatar}>
@@ -404,31 +404,31 @@ export default function ItemDetailScreen() {
                 </View>
                 <View style={styles.trustInfo}>
                   <Text style={styles.trustName}>{PLATFORM_NAME}</Text>
-                  <Text style={styles.trustSub}>Official marketplace · Buyer protected</Text>
+                  <Text style={styles.trustSub}>Marketplace officielle · Acheteur protégé</Text>
                 </View>
                 <Feather name="check-circle" size={20} color={colors.primary} />
               </View>
               <View style={styles.trustBadges}>
                 <View style={styles.trustBadge}>
-                  <Feather name="shield" size={12} color={colors.primary} />
-                  <Text style={styles.trustBadgeText}>Secure payment</Text>
+                  <Feather name="lock" size={12} color={colors.primary} />
+                  <Text style={styles.trustBadgeText}>Paiement sécurisé</Text>
                 </View>
                 <View style={styles.trustBadge}>
                   <Feather name="refresh-cw" size={12} color={colors.primary} />
-                  <Text style={styles.trustBadgeText}>Easy returns</Text>
+                  <Text style={styles.trustBadgeText}>Retours faciles</Text>
                 </View>
                 <View style={styles.trustBadge}>
-                  <Feather name="message-circle" size={12} color={colors.primary} />
-                  <Text style={styles.trustBadgeText}>24/7 support</Text>
+                  <Feather name="headphones" size={12} color={colors.primary} />
+                  <Text style={styles.trustBadgeText}>Support 24h/24</Text>
                 </View>
               </View>
               <TouchableOpacity
                 style={styles.askBtn}
                 onPress={handleAskQuestion}
                 accessibilityRole="button"
-                accessibilityLabel="Ask a question"
+                accessibilityLabel="Poser une question"
               >
-                <Text style={styles.askBtnText}>Ask a question</Text>
+                <Text style={styles.askBtnText}>Poser une question</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -441,21 +441,21 @@ export default function ItemDetailScreen() {
           onPress={handleOffer}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel="Make an offer"
+          accessibilityLabel="Faire une offre"
         >
-          <Text style={styles.offerBtnText}>Make offer</Text>
+          <Text style={styles.offerBtnText}>Faire offre</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buyBtn}
           onPress={handleBuy}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel={`Buy for ${item.price} euros`}
+          accessibilityLabel={`Acheter pour ${item.price} FCFA`}
         >
           {isBuying ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.buyBtnText}>Buy · {item.price} €</Text>
+            <Text style={styles.buyBtnText}>Acheter · {item.price} FCFA</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -475,10 +475,10 @@ export default function ItemDetailScreen() {
           <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
             <Text style={styles.modalTitle}>Make an offer</Text>
             <Text style={styles.modalSub}>
-              Listed at {item.price} €. Enter your offer below.
+              Prix affiché : {item.price} FCFA. Entrez votre offre ci-dessous.
             </Text>
             <View style={styles.offerInputRow}>
-              <Text style={styles.offerCurrency}>€</Text>
+              <Text style={styles.offerCurrency}>F</Text>
               <TextInput
                 style={styles.offerInput}
                 value={offerAmount}

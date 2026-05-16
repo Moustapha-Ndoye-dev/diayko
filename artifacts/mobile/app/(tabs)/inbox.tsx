@@ -167,7 +167,7 @@ export default function InboxScreen() {
           </View>
           {conv.item && (
             <Text style={styles.itemLabel} numberOfLines={1}>
-              {conv.item.title} · {conv.item.price} €
+              {conv.item.title} · {conv.item.price} FCFA
             </Text>
           )}
           {conv.lastMessage && (

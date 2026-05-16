@@ -143,7 +143,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
       onPress={handlePress}
       activeOpacity={0.92}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title} by ${item.brand}, ${item.price} euros`}
+      accessibilityLabel={`${item.title} par ${item.brand}, ${item.price} FCFA`}
     >
       <View style={styles.imageContainer}>
         <Image
@@ -178,9 +178,9 @@ export function ItemCard({ item, style }: ItemCardProps) {
           {item.title}
         </Text>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{item.price} €</Text>
+          <Text style={styles.price}>{item.price} FCFA</Text>
           {item.originalPrice != null && (
-            <Text style={styles.originalPrice}>{item.originalPrice} €</Text>
+            <Text style={styles.originalPrice}>{item.originalPrice} FCFA</Text>
           )}
         </View>
         <View style={styles.sizeChip}>

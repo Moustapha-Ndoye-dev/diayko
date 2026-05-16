@@ -389,7 +389,7 @@ export default function ConversationScreen() {
             {itemTitle}
           </Text>
           {itemPrice ? (
-            <Text style={styles.itemBannerPrice}>{itemPrice} €</Text>
+            <Text style={styles.itemBannerPrice}>{itemPrice} FCFA</Text>
           ) : null}
         </View>
       ) : null}

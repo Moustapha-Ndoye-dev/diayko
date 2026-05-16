@@ -8,30 +8,31 @@ import React, { useEffect } from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 import { storage } from "@/lib/storage";
 
 function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
+        <Icon sf={{ default: "bag", selected: "bag.fill" }} />
+        <Label>Accueil</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search">
         <Icon sf={{ default: "magnifyingglass", selected: "magnifyingglass" }} />
-        <Label>Search</Label>
+        <Label>Recherche</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="sell">
-        <Icon sf={{ default: "plus.circle", selected: "plus.circle.fill" }} />
-        <Label>Sell</Label>
+        <Icon sf={{ default: "tag", selected: "tag.fill" }} />
+        <Label>Vendre</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="inbox">
-        <Icon sf={{ default: "message", selected: "message.fill" }} />
-        <Label>Inbox</Label>
+        <Icon sf={{ default: "bubble.left.and.bubble.right", selected: "bubble.left.and.bubble.right.fill" }} />
+        <Label>Messages</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person", selected: "person.fill" }} />
-        <Label>Profile</Label>
+        <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
+        <Label>Profil</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -40,13 +41,13 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   const colors = useColors();
   const router = useRouter();
+  const { sellerStatus } = useApp();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
-  // Check onboarding status here — navigation context is guaranteed to be
-  // available inside a layout component (unlike the root _layout).
+  // Redirect to onboarding if not completed.
   useEffect(() => {
     storage.onboarding.isComplete().then((complete) => {
       if (!complete) {
@@ -90,22 +91,25 @@ function ClassicTabLayout() {
         },
       }}
     >
+      {/* 🛍 Accueil — shopping bag = marketplace à parcourir */}
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Accueil",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="house" tintColor={color} size={24} />
+              <SymbolView name="bag" tintColor={color} size={24} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <Feather name="shopping-bag" size={22} color={color} />
             ),
         }}
       />
+
+      {/* 🔍 Recherche — loupe = recherche et découverte */}
       <Tabs.Screen
         name="search"
         options={{
-          title: "Search",
+          title: "Recherche",
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="magnifyingglass" tintColor={color} size={24} />
@@ -114,41 +118,49 @@ function ClassicTabLayout() {
             ),
         }}
       />
+
+      {/* 🏷 Vendre — étiquette prix = mise en vente d'un article
+           Masqué pour les non-vendeurs (href: null retire l'onglet de la barre) */}
       <Tabs.Screen
         name="sell"
         options={{
-          title: "Sell",
+          href: sellerStatus === "approved" ? undefined : null,
+          title: "Vendre",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="plus.circle.fill" tintColor={color} size={28} />
+              <SymbolView name="tag.fill" tintColor={color} size={24} />
             ) : (
-              <Feather name="plus-circle" size={26} color={color} />
+              <Feather name="tag" size={22} color={color} />
             ),
         }}
       />
+
+      {/* 💬 Messages — bulles = conversations */}
       <Tabs.Screen
         name="inbox"
         options={{
-          title: "Inbox",
+          title: "Messages",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="message" tintColor={color} size={24} />
+              <SymbolView name="bubble.left.and.bubble.right" tintColor={color} size={24} />
             ) : (
-              <Feather name="message-circle" size={22} color={color} />
+              <Feather name="message-square" size={22} color={color} />
             ),
           tabBarBadge: 3,
           tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 11 },
         }}
       />
+
+      {/* 👤 Profil — cercle personne = compte utilisateur */}
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Profil",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="person" tintColor={color} size={24} />
+              <SymbolView name="person.circle" tintColor={color} size={24} />
             ) : (
-              <Feather name="user" size={22} color={color} />
+              <Feather name="user-check" size={22} color={color} />
             ),
         }}
       />

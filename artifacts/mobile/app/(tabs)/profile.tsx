@@ -110,7 +110,7 @@ function SellerStatusCard({ status, onRequest }: SellerCardProps) {
             width: 38,
             height: 38,
             borderRadius: 19,
-            backgroundColor: "rgba(9,177,186,0.18)",
+            backgroundColor: colors.accent,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -454,34 +454,34 @@ export default function ProfileScreen() {
 
       <View style={styles.menuSection}>
         <MenuItem
-          icon="package"
-          label="My purchases"
-          onPress={() => {}}
+          icon="shopping-bag"
+          label="Mes achats"
+          onPress={() => router.push("/my-purchases")}
         />
         <MenuItem
           icon="truck"
-          label="Shipments"
+          label="Livraisons"
           onPress={() => {}}
         />
         {sellerStatus === "approved" && (
           <>
             <MenuItem
-              icon="bar-chart-2"
-              label="Seller analytics"
-              badge="NEW"
+              icon="trending-up"
+              label="Statistiques vendeur"
+              badge="NOUVEAU"
               onPress={() => {}}
             />
             <MenuItem
               icon="dollar-sign"
-              label="Payouts & earnings"
+              label="Gains et retraits"
               onPress={() => {}}
             />
           </>
         )}
         <MenuItem
-          icon="credit-card"
-          label="Wallet"
-          onPress={() => {}}
+          icon="pocket"
+          label="Portefeuille"
+          onPress={() => router.push("/wallet")}
         />
         <MenuItem
           icon="bell"
@@ -490,8 +490,8 @@ export default function ProfileScreen() {
           onPress={() => router.push("/notifications")}
         />
         <MenuItem
-          icon="settings"
-          label="Settings"
+          icon="sliders"
+          label="Paramètres"
           onPress={() => router.push("/settings")}
         />
       </View>

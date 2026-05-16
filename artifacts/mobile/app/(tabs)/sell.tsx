@@ -181,39 +181,40 @@ function SellForm() {
     </TouchableOpacity>
   );
 
-  const serviceFee = form.price ? (parseFloat(form.price) * 0.08 + 0.7).toFixed(2) : null;
-  const youEarn = form.price && serviceFee ? (parseFloat(form.price) - parseFloat(serviceFee)).toFixed(2) : null;
+  const rawPrice = form.price ? parseFloat(form.price) : null;
+  const serviceFeeAmt = rawPrice ? Math.max(500, Math.round(rawPrice * 0.08) + 500) : null;
+  const youEarn = rawPrice && serviceFeeAmt ? rawPrice - serviceFeeAmt : null;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Sell an item</Text>
-        <Text style={styles.subtitle}>Fill in the details to list your item</Text>
+        <Text style={styles.title}>Publier un article</Text>
+        <Text style={styles.subtitle}>Remplissez les détails pour mettre en vente</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.photoArea}>
           <Feather name="camera" size={32} color={colors.mutedForeground} />
-          <Text style={styles.photoText}>Add photos</Text>
-          <Text style={styles.photoSub}>Up to 20 photos</Text>
+          <Text style={styles.photoText}>Ajouter des photos</Text>
+          <Text style={styles.photoSub}>Jusqu'à 20 photos</Text>
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Title <Text style={styles.required}>*</Text></Text>
-          <TextInput style={styles.input} value={form.title} onChangeText={(v) => update("title", v)} placeholder="e.g. Blue denim jacket" placeholderTextColor={colors.mutedForeground} />
+          <Text style={styles.label}>Titre <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={form.title} onChangeText={(v) => update("title", v)} placeholder="ex. Veste en jean bleu" placeholderTextColor={colors.mutedForeground} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Brand <Text style={styles.required}>*</Text></Text>
-          <TextInput style={styles.input} value={form.brand} onChangeText={(v) => update("brand", v)} placeholder="e.g. Zara, Nike, H&M" placeholderTextColor={colors.mutedForeground} />
+          <Text style={styles.label}>Marque <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={form.brand} onChangeText={(v) => update("brand", v)} placeholder="ex. Zara, Nike, H&M, Artisan local" placeholderTextColor={colors.mutedForeground} />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.label}>Description</Text>
-          <TextInput style={[styles.input, styles.textarea]} value={form.description} onChangeText={(v) => update("description", v)} placeholder="Describe the item, fit, any flaws…" placeholderTextColor={colors.mutedForeground} multiline />
+          <TextInput style={[styles.input, styles.textarea]} value={form.description} onChangeText={(v) => update("description", v)} placeholder="Décrivez l'article, la coupe, les éventuels défauts…" placeholderTextColor={colors.mutedForeground} multiline />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Category <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>Catégorie <Text style={styles.required}>*</Text></Text>
           <View style={styles.chipRow}>
             {CATEGORIES.filter((c) => c.id !== "all").map((cat) =>
               chip(cat.id, form.category === cat.id, () => update("category", cat.id), cat.label)
@@ -222,7 +223,7 @@ function SellForm() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Size <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>Taille <Text style={styles.required}>*</Text></Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: "row", gap: 6 }}>
               {SIZES.map((s) => chip(s, form.size === s, () => update("size", s)))}
@@ -231,14 +232,14 @@ function SellForm() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Condition <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>État <Text style={styles.required}>*</Text></Text>
           <View style={styles.chipRow}>
             {CONDITIONS.map((c) => chip(c, form.condition === c, () => update("condition", c)))}
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Color</Text>
+          <Text style={styles.label}>Couleur</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: "row", gap: 6 }}>
               {COLORS_LIST.map((c) => chip(c, form.color === c, () => update("color", form.color === c ? "" : c)))}
@@ -247,22 +248,23 @@ function SellForm() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Price <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>Prix <Text style={styles.required}>*</Text></Text>
           <View style={styles.priceRow}>
-            <Text style={styles.currencyLabel}>€</Text>
-            <TextInput style={styles.priceInput} value={form.price} onChangeText={(v) => update("price", v.replace(/[^0-9.]/g, ""))} placeholder="0.00" placeholderTextColor={colors.mutedForeground} keyboardType="decimal-pad" />
+            <Text style={styles.currencyLabel}>F</Text>
+            <TextInput style={styles.priceInput} value={form.price} onChangeText={(v) => update("price", v.replace(/[^0-9]/g, ""))} placeholder="5000" placeholderTextColor={colors.mutedForeground} keyboardType="number-pad" />
+            <Text style={[styles.currencyLabel, { paddingLeft: 0 }]}>CFA</Text>
           </View>
         </View>
 
-        {youEarn && (
+        {youEarn != null && serviceFeeAmt != null && (
           <View style={styles.feeRow}>
-            <Text style={styles.feeText}>Service fee: {serviceFee} €</Text>
-            <Text style={styles.feeAmount}>You earn: {youEarn} €</Text>
+            <Text style={styles.feeText}>Commission Diayko : {serviceFeeAmt} FCFA (8% + 500 FCFA fixe)</Text>
+            <Text style={styles.feeAmount}>Vous recevez : {youEarn} FCFA</Text>
           </View>
         )}
 
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={!isValid || submitting} activeOpacity={0.8}>
-          <Text style={styles.submitText}>{submitting ? "Publishing…" : "List item"}</Text>
+          <Text style={styles.submitText}>{submitting ? "Publication…" : "Publier l'article"}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
