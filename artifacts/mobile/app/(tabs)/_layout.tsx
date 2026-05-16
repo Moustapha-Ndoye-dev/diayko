@@ -84,8 +84,6 @@ function ClassicTabLayout() {
           href: sellerStatus === "approved" ? undefined : null,
           title: "Vendre",
           tabBarIcon: ({ color, focused }) => <SellIcon color={color} size={24} filled={focused} />,
-          // Double garde : masque complètement le bouton dans la barre si non approuvé.
-          tabBarButton: sellerStatus === "approved" ? undefined : () => null,
         }}
       />
 
