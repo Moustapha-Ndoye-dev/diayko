@@ -116,7 +116,7 @@ export default function InboxScreen() {
       justifyContent: "center",
     },
     unreadBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" },
-    footer: { height: bottomPad + 49 + 16 },
+    footer: { height: bottomPad + 64 + 16 },
   });
 
   const navigateToConversation = (conv: Conversation) => {

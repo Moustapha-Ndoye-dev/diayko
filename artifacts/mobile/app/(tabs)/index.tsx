@@ -142,7 +142,7 @@ export default function BrowseScreen() {
     },
     row: { flexDirection: "row", gap: 12, marginBottom: 12 },
     grid: { paddingHorizontal: 12 },
-    footer: { height: Platform.OS === "web" ? 34 : insets.bottom + 65 },
+    footer: { height: Platform.OS === "web" ? 34 : insets.bottom + 80 },
   });
 
   const categoryLabel =

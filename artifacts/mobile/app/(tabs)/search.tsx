@@ -49,7 +49,7 @@ export default function SearchScreen() {
 
   const debouncedQuery = useDebounce(query, 300);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 49;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 64;
 
   const hasFilters = filters.size !== null || filters.condition !== null;
 

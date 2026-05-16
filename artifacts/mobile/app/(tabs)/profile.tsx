@@ -254,7 +254,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("listings");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 49;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 64;
 
   // Non-sellers cannot have listings — force the Favourites tab.
   const effectiveTab: ProfileTab =
