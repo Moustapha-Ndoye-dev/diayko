@@ -100,7 +100,7 @@ export function FeaturedSellers() {
         contentContainerStyle={styles.scroll}
       >
         {MOCK_USERS.map((user, i) => {
-          const initials = user.name.split(" ").map((n) => n[0]).join("").toUpperCase();
+          const initials = user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
           return (
             <TouchableOpacity key={user.id} style={styles.card} activeOpacity={0.75}>
               <View style={styles.avatarWrap}>

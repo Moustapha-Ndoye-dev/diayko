@@ -1,0 +1,297 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Platform,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+import { useColors } from "@/hooks/useColors";
+import { storage } from "@/lib/storage";
+
+interface SettingsItemProps {
+  icon: string;
+  label: string;
+  value?: string;
+  onPress?: () => void;
+  showArrow?: boolean;
+  destructive?: boolean;
+  rightElement?: React.ReactNode;
+}
+
+function SettingsItem({
+  icon,
+  label,
+  value,
+  onPress,
+  showArrow = true,
+  destructive = false,
+  rightElement,
+}: SettingsItemProps) {
+  const colors = useColors();
+
+  const styles = StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 13,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.separator,
+      gap: 12,
+    },
+    iconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    label: {
+      flex: 1,
+      fontSize: 15,
+      fontFamily: "Inter_400Regular",
+      color: destructive ? colors.destructive : colors.foreground,
+    },
+    value: {
+      fontSize: 14,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      marginRight: 4,
+    },
+  });
+
+  return (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      accessibilityRole={onPress ? "button" : "none"}
+      accessibilityLabel={label}
+    >
+      <View
+        style={[
+          styles.iconWrap,
+          {
+            backgroundColor: destructive
+              ? `${colors.destructive}14`
+              : colors.secondary,
+          },
+        ]}
+      >
+        <Feather
+          name={icon as any}
+          size={16}
+          color={destructive ? colors.destructive : colors.mutedForeground}
+        />
+      </View>
+      <Text style={styles.label}>{label}</Text>
+      {value ? <Text style={styles.value}>{value}</Text> : null}
+      {rightElement}
+      {showArrow && onPress && !rightElement ? (
+        <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+      ) : null}
+    </TouchableOpacity>
+  );
+}
+
+interface SectionHeaderProps {
+  title: string;
+}
+
+function SectionHeader({ title }: SectionHeaderProps) {
+  const colors = useColors();
+  return (
+    <Text
+      style={{
+        fontSize: 12,
+        fontFamily: "Inter_600SemiBold",
+        color: colors.mutedForeground,
+        letterSpacing: 0.8,
+        textTransform: "uppercase",
+        paddingHorizontal: 16,
+        paddingTop: 24,
+        paddingBottom: 8,
+      }}
+    >
+      {title}
+    </Text>
+  );
+}
+
+export default function SettingsScreen() {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const handleLogOut = () => {
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: async () => {
+          await storage.onboarding.reset();
+          router.replace("/onboarding");
+        },
+      },
+    ]);
+  };
+
+  const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingTop: topPad + 8,
+      paddingBottom: 12,
+      paddingHorizontal: 16,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      gap: 10,
+    },
+    backBtn: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 20,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+    },
+    sectionBorder: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    version: {
+      textAlign: "center",
+      fontSize: 13,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      paddingTop: 24,
+      paddingBottom: bottomPad + 24,
+    },
+  });
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Feather name="arrow-left" size={22} color={colors.foreground} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Settings</Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <SectionHeader title="Account" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem icon="user" label="Edit profile" onPress={() => {}} />
+          <SettingsItem icon="mail" label="Email address" value="sophie@example.com" onPress={() => {}} />
+          <SettingsItem icon="lock" label="Change password" onPress={() => {}} />
+          <SettingsItem icon="credit-card" label="Payment methods" onPress={() => {}} />
+          <SettingsItem icon="map-pin" label="Shipping address" onPress={() => {}} />
+        </View>
+
+        <SectionHeader title="Notifications" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem
+            icon="bell"
+            label="Push notifications"
+            showArrow={false}
+            rightElement={
+              <Switch
+                value={pushEnabled}
+                onValueChange={setPushEnabled}
+                trackColor={{ true: colors.primary }}
+                accessibilityLabel="Toggle push notifications"
+              />
+            }
+          />
+          <SettingsItem
+            icon="mail"
+            label="Email notifications"
+            showArrow={false}
+            rightElement={
+              <Switch
+                value={emailEnabled}
+                onValueChange={setEmailEnabled}
+                trackColor={{ true: colors.primary }}
+                accessibilityLabel="Toggle email notifications"
+              />
+            }
+          />
+          <SettingsItem
+            icon="message-square"
+            label="SMS notifications"
+            showArrow={false}
+            rightElement={
+              <Switch
+                value={smsEnabled}
+                onValueChange={setSmsEnabled}
+                trackColor={{ true: colors.primary }}
+                accessibilityLabel="Toggle SMS notifications"
+              />
+            }
+          />
+        </View>
+
+        <SectionHeader title="Privacy" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem icon="eye" label="Profile visibility" value="Public" onPress={() => {}} />
+          <SettingsItem icon="shield" label="Data & privacy" onPress={() => {}} />
+          <SettingsItem icon="download" label="Download my data" onPress={() => {}} />
+        </View>
+
+        <SectionHeader title="Support" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem icon="help-circle" label="Help center" onPress={() => {}} />
+          <SettingsItem icon="message-circle" label="Contact support" onPress={() => {}} />
+          <SettingsItem icon="flag" label="Report a problem" onPress={() => {}} />
+        </View>
+
+        <SectionHeader title="About" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem icon="file-text" label="Terms of service" onPress={() => {}} />
+          <SettingsItem icon="shield" label="Privacy policy" onPress={() => {}} />
+          <SettingsItem icon="info" label="Licences" onPress={() => {}} />
+        </View>
+
+        <SectionHeader title="Account actions" />
+        <View style={styles.sectionBorder}>
+          <SettingsItem
+            icon="log-out"
+            label="Log out"
+            destructive
+            showArrow={false}
+            onPress={handleLogOut}
+          />
+        </View>
+
+        <Text style={styles.version}>Vinted Clone · Version 1.0.0</Text>
+      </ScrollView>
+    </View>
+  );
+}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,27 +17,35 @@ import { CategoryBar } from "@/components/CategoryPill";
 import { SearchBar } from "@/components/SearchBar";
 import { PromoCarousel } from "@/components/PromoCarousel";
 import { FeaturedSellers } from "@/components/FeaturedSellers";
+import { SkeletonGrid } from "@/components/SkeletonCard";
+import { EmptyState } from "@/components/EmptyState";
 import { CATEGORIES } from "@/data/mockData";
+import { Item } from "@/types";
 
 export default function BrowseScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { items } = useApp();
+  const { items, isLoading } = useApp();
   const [selectedCategory, setSelectedCategory] = useState("all");
-
-  const filtered = useMemo(() => {
-    if (selectedCategory === "all") return items;
-    return items.filter((i) => i.category === selectedCategory);
-  }, [items, selectedCategory]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  const filtered = useMemo(() => {
+    if (selectedCategory === "all") return items;
+    return items.filter((item) => item.category === selectedCategory);
+  }, [items, selectedCategory]);
+
+  const pairs = useMemo(() => {
+    const result: [Item, Item | undefined][] = [];
+    for (let i = 0; i < filtered.length; i += 2) {
+      result.push([filtered[i]!, filtered[i + 1]]);
+    }
+    return result;
+  }, [filtered]);
+
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
     header: {
       paddingTop: topPad + 12,
       paddingHorizontal: 16,
@@ -58,10 +66,7 @@ export default function BrowseScreen() {
       flex: 1,
       letterSpacing: -0.5,
     },
-    iconBtnRow: {
-      flexDirection: "row",
-      gap: 8,
-    },
+    iconBtnRow: { flexDirection: "row", gap: 8 },
     iconBtn: {
       width: 38,
       height: 38,
@@ -81,54 +86,19 @@ export default function BrowseScreen() {
       borderWidth: 1.5,
       borderColor: colors.card,
     },
-    categoryBarWrap: {
-      marginTop: 10,
-    },
+    categoryBarWrap: { marginTop: 10 },
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: 16,
-      paddingTop: 18,
+      paddingTop: 16,
       paddingBottom: 10,
     },
     sectionTitle: {
       fontSize: 17,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
-    },
-    seeAll: {
-      fontSize: 13,
-      fontFamily: "Inter_500Medium",
-      color: colors.primary,
-    },
-    divider: {
-      height: 8,
-      backgroundColor: colors.background,
-      marginVertical: 8,
-    },
-    grid: {
-      paddingHorizontal: 12,
-    },
-    row: {
-      flexDirection: "row",
-      gap: 12,
-      marginBottom: 12,
-    },
-    emptyContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 60,
-    },
-    emptyText: {
-      marginTop: 12,
-      fontSize: 15,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-    },
-    bottomPad: {
-      height: Platform.OS === "web" ? 34 : 16,
     },
     countBadge: {
       backgroundColor: colors.accent,
@@ -141,28 +111,43 @@ export default function BrowseScreen() {
       fontFamily: "Inter_600SemiBold",
       color: colors.primary,
     },
+    divider: {
+      height: 8,
+      backgroundColor: colors.background,
+      marginVertical: 4,
+    },
+    row: { flexDirection: "row", gap: 12, marginBottom: 12 },
+    grid: { paddingHorizontal: 12 },
+    footer: { height: Platform.OS === "web" ? 34 : 16 },
   });
 
-  const pairs = useMemo(() => {
-    const result: (typeof filtered)[] = [];
-    for (let i = 0; i < filtered.length; i += 2) {
-      result.push([filtered[i], filtered[i + 1]].filter(Boolean) as typeof filtered);
-    }
-    return result;
-  }, [filtered]);
+  const categoryLabel =
+    CATEGORIES.find((c) => c.id === selectedCategory)?.label ?? "";
+
+  const handleCategorySelect = useCallback((id: string) => {
+    setSelectedCategory(id);
+  }, []);
 
   const renderHeader = () => (
     <View>
-      {/* Top header */}
       <View style={styles.header}>
         <View style={styles.topRow}>
           <Text style={styles.logo}>vinted</Text>
           <View style={styles.iconBtnRow}>
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => router.push("/notifications")}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+            >
               <Feather name="bell" size={18} color={colors.foreground} />
               <View style={styles.notifDot} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Saved items"
+            >
               <Feather name="bookmark" size={18} color={colors.foreground} />
             </TouchableOpacity>
           </View>
@@ -177,58 +162,55 @@ export default function BrowseScreen() {
           <CategoryBar
             categories={CATEGORIES}
             selected={selectedCategory}
-            onSelect={setSelectedCategory}
+            onSelect={handleCategorySelect}
           />
         </View>
       </View>
 
-      {/* Promo carousel */}
       <PromoCarousel />
-
-      {/* Divider */}
       <View style={styles.divider} />
-
-      {/* Top sellers */}
       <FeaturedSellers />
-
-      {/* Divider */}
       <View style={styles.divider} />
 
-      {/* Section title */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {selectedCategory === "all"
-            ? "Latest listings"
-            : CATEGORIES.find((c) => c.id === selectedCategory)?.label ?? ""}
+          {selectedCategory === "all" ? "Latest listings" : categoryLabel}
         </Text>
-        <View style={styles.countBadge}>
-          <Text style={styles.countText}>{filtered.length} items</Text>
-        </View>
+        {!isLoading && (
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{filtered.length} items</Text>
+          </View>
+        )}
       </View>
+
+      {isLoading && <SkeletonGrid />}
     </View>
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={pairs}
+        data={isLoading ? [] : pairs}
         keyExtractor={(_, i) => String(i)}
-        renderItem={({ item }) => (
+        renderItem={({ item: [left, right] }) => (
           <View style={styles.row}>
-            <ItemCard item={item[0]} />
-            {item[1] ? <ItemCard item={item[1]} /> : <View style={{ flex: 1 }} />}
+            <ItemCard item={left} />
+            {right ? <ItemCard item={right} /> : <View style={{ flex: 1 }} />}
           </View>
         )}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Feather name="shopping-bag" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No items found</Text>
-          </View>
+          !isLoading ? (
+            <EmptyState
+              icon="shopping-bag"
+              title="No items found"
+              description="Try selecting a different category or check back later."
+            />
+          ) : null
         }
-        ListFooterComponent={<View style={styles.bottomPad} />}
+        ListFooterComponent={<View style={styles.footer} />}
       />
     </View>
   );

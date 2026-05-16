@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import { Item } from "@/types";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 36) / 2;
 
+const PLACEHOLDER_IMAGE =
+  "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=60";
+
 interface ItemCardProps {
   item: Item;
   style?: object;
@@ -28,18 +31,24 @@ export function ItemCard({ item, style }: ItemCardProps) {
   const { toggleFavorite, isFavorite } = useApp();
   const liked = isFavorite(item.id);
 
-  const handleLike = () => {
+  const imageUri =
+    item.images.length > 0 ? item.images[0]! : PLACEHOLDER_IMAGE;
+
+  const discountPct =
+    item.originalPrice != null && item.originalPrice > 0
+      ? Math.round(
+          ((item.originalPrice - item.price) / item.originalPrice) * 100
+        )
+      : null;
+
+  const handleLike = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleFavorite(item.id);
-  };
+  }, [item.id, toggleFavorite]);
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     router.push(`/item/${item.id}`);
-  };
-
-  const discount = item.originalPrice
-    ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)
-    : null;
+  }, [item.id, router]);
 
   const styles = StyleSheet.create({
     card: {
@@ -68,7 +77,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
       alignItems: "center",
       justifyContent: "center",
     },
-    badge: {
+    discountBadge: {
       position: "absolute",
       top: 8,
       left: 8,
@@ -77,7 +86,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
       paddingHorizontal: 6,
       paddingVertical: 2,
     },
-    badgeText: {
+    discountText: {
       color: "#fff",
       fontSize: 10,
       fontFamily: "Inter_600SemiBold",
@@ -85,16 +94,16 @@ export function ItemCard({ item, style }: ItemCardProps) {
     info: {
       padding: 8,
     },
-    title: {
-      fontSize: 13,
-      fontFamily: "Inter_500Medium",
-      color: colors.foreground,
-      marginBottom: 2,
-    },
     brand: {
       fontSize: 11,
       fontFamily: "Inter_400Regular",
       color: colors.mutedForeground,
+      marginBottom: 2,
+    },
+    title: {
+      fontSize: 13,
+      fontFamily: "Inter_500Medium",
+      color: colors.foreground,
       marginBottom: 4,
     },
     priceRow: {
@@ -114,7 +123,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
       textDecorationLine: "line-through",
     },
     sizeChip: {
-      marginTop: 4,
+      marginTop: 5,
       alignSelf: "flex-start",
       backgroundColor: colors.secondary,
       borderRadius: 4,
@@ -132,25 +141,32 @@ export function ItemCard({ item, style }: ItemCardProps) {
     <TouchableOpacity
       style={[styles.card, style]}
       onPress={handlePress}
-      activeOpacity={0.9}
+      activeOpacity={0.92}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title} by ${item.brand}, ${item.price} euros`}
     >
       <View style={styles.imageContainer}>
         <Image
-          source={typeof item.images[0] === "string" ? { uri: item.images[0] } : item.images[0]}
+          source={{ uri: imageUri }}
           style={styles.image}
           resizeMode="cover"
         />
-        {discount && discount > 30 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>-{discount}%</Text>
+        {discountPct !== null && discountPct >= 20 && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>-{discountPct}%</Text>
           </View>
         )}
-        <TouchableOpacity style={styles.likeButton} onPress={handleLike}>
+        <TouchableOpacity
+          style={styles.likeButton}
+          onPress={handleLike}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={liked ? "Remove from favourites" : "Add to favourites"}
+        >
           <Feather
             name="heart"
             size={16}
             color={liked ? "#e74c3c" : "#666"}
-            style={{ opacity: liked ? 1 : 0.8 }}
           />
         </TouchableOpacity>
       </View>
@@ -163,7 +179,7 @@ export function ItemCard({ item, style }: ItemCardProps) {
         </Text>
         <View style={styles.priceRow}>
           <Text style={styles.price}>{item.price} €</Text>
-          {item.originalPrice && (
+          {item.originalPrice != null && (
             <Text style={styles.originalPrice}>{item.originalPrice} €</Text>
           )}
         </View>

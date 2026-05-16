@@ -1,4 +1,4 @@
-import { Item, User, Conversation, Category } from "@/types";
+import { Item, Seller, Conversation, Category, Condition } from "@/types";
 
 export const CATEGORIES: Category[] = [
   { id: "all", label: "All", icon: "grid" },
@@ -12,14 +12,15 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
-export const CONDITIONS: Item["condition"][] = [
+
+export const CONDITIONS: Condition[] = [
   "New with tags",
   "Like new",
   "Good",
   "Fair",
 ];
 
-export const MOCK_USERS: User[] = [
+export const MOCK_USERS: Seller[] = [
   {
     id: "u1",
     name: "Sophie Martin",
@@ -41,6 +42,7 @@ export const MOCK_USERS: User[] = [
     followersCount: 180,
     followingCount: 45,
     joinedAt: "2023-01-15",
+    verified: false,
     bio: "Minimalist closet, vintage finds.",
   },
   {
@@ -52,6 +54,7 @@ export const MOCK_USERS: User[] = [
     followersCount: 210,
     followingCount: 120,
     joinedAt: "2022-09-10",
+    verified: false,
   },
   {
     id: "u4",
@@ -73,9 +76,12 @@ export const MOCK_USERS: User[] = [
     followersCount: 58,
     followingCount: 21,
     joinedAt: "2024-01-05",
+    verified: false,
   },
 ];
 
+// Fallback items used when the API is unreachable.
+// Images point to Unsplash URLs (same as seeded data).
 export const MOCK_ITEMS: Item[] = [
   {
     id: "i1",
@@ -86,12 +92,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "M",
     condition: "Like new",
     category: "women",
-    images: [require("../assets/images/item1.png")],
+    images: [
+      "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400&q=70",
+    ],
     description:
-      "Barely worn Levi's denim jacket in perfect condition. Great for layering. No stains or damage. Selling because it doesn't fit anymore.",
-    seller: MOCK_USERS[0],
-    likes: 24,
-    views: 158,
+      "Barely worn Levi's denim jacket in perfect condition. Great for layering. No stains or damage.",
+    seller: MOCK_USERS[0]!,
+    likesCount: 24,
+    viewsCount: 158,
     postedAt: "2024-05-10",
     color: "Blue",
   },
@@ -104,12 +112,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "S",
     condition: "Good",
     category: "women",
-    images: [require("../assets/images/item2.png")],
+    images: [
+      "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=70",
+    ],
     description:
-      "Beautiful camel coat, very warm and stylish. Worn a few times last winter. Minor pilling on interior but not visible when worn.",
-    seller: MOCK_USERS[1],
-    likes: 41,
-    views: 302,
+      "Beautiful camel coat, very warm and stylish. Worn a few times last winter.",
+    seller: MOCK_USERS[1]!,
+    likesCount: 41,
+    viewsCount: 302,
     postedAt: "2024-05-12",
     color: "Camel",
   },
@@ -122,12 +132,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "One Size",
     condition: "Good",
     category: "bags",
-    images: [require("../assets/images/item3.png")],
+    images: [
+      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=70",
+    ],
     description:
-      "Sleek black leather crossbody bag. Adjustable strap, multiple compartments. Small scratch on the clasp (barely noticeable).",
-    seller: MOCK_USERS[2],
-    likes: 18,
-    views: 94,
+      "Sleek black leather crossbody bag. Adjustable strap, multiple compartments.",
+    seller: MOCK_USERS[2]!,
+    likesCount: 18,
+    viewsCount: 94,
     postedAt: "2024-05-13",
     color: "Black",
   },
@@ -140,12 +152,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "38",
     condition: "Like new",
     category: "shoes",
-    images: [require("../assets/images/item4.png")],
+    images: [
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=70",
+    ],
     description:
-      "Nike Air Force 1 in excellent condition. Worn twice. Original box included. Clean and bright white.",
-    seller: MOCK_USERS[3],
-    likes: 87,
-    views: 534,
+      "Nike Air Force 1 in excellent condition. Worn twice. Original box included.",
+    seller: MOCK_USERS[3]!,
+    likesCount: 87,
+    viewsCount: 534,
     postedAt: "2024-05-14",
     color: "White",
   },
@@ -158,12 +172,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "XS",
     condition: "Good",
     category: "women",
-    images: [require("../assets/images/item5.png")],
+    images: [
+      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=70",
+    ],
     description:
-      "Light and flowy floral dress, perfect for summer. Machine washable. Very comfortable. Worn a couple of times.",
-    seller: MOCK_USERS[4],
-    likes: 33,
-    views: 210,
+      "Light and flowy floral dress, perfect for summer. Machine washable.",
+    seller: MOCK_USERS[4]!,
+    likesCount: 33,
+    viewsCount: 210,
     postedAt: "2024-05-15",
     color: "Multicolor",
   },
@@ -176,12 +192,14 @@ export const MOCK_ITEMS: Item[] = [
     size: "L",
     condition: "Like new",
     category: "women",
-    images: [require("../assets/images/item6.png")],
+    images: [
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&q=70",
+    ],
     description:
-      "COS oversized cream sweater, incredibly soft and cozy. Perfect condition, only worn once. Timeless piece.",
-    seller: MOCK_USERS[0],
-    likes: 56,
-    views: 389,
+      "COS oversized cream sweater, incredibly soft and cozy. Perfect condition, only worn once.",
+    seller: MOCK_USERS[0]!,
+    likesCount: 56,
+    viewsCount: 389,
     postedAt: "2024-05-09",
     color: "Cream",
   },
@@ -190,7 +208,9 @@ export const MOCK_ITEMS: Item[] = [
 export const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: "c1",
-    otherUser: MOCK_USERS[1],
+    buyerId: "u2",
+    sellerId: "u1",
+    otherUser: MOCK_USERS[1]!,
     lastMessage: "Is the jacket still available?",
     lastMessageAt: "2024-05-15T14:23:00Z",
     unreadCount: 1,
@@ -198,12 +218,14 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
       id: "i1",
       title: "Classic Denim Jacket",
       price: 35,
-      images: [require("../assets/images/item1.png")],
+      images: [MOCK_ITEMS[0]!.images[0]!],
     },
   },
   {
     id: "c2",
-    otherUser: MOCK_USERS[2],
+    buyerId: "u1",
+    sellerId: "u3",
+    otherUser: MOCK_USERS[2]!,
     lastMessage: "Thank you! It will ship tomorrow.",
     lastMessageAt: "2024-05-14T09:10:00Z",
     unreadCount: 0,
@@ -211,12 +233,14 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
       id: "i3",
       title: "Leather Crossbody Bag",
       price: 28,
-      images: [require("../assets/images/item3.png")],
+      images: [MOCK_ITEMS[2]!.images[0]!],
     },
   },
   {
     id: "c3",
-    otherUser: MOCK_USERS[3],
+    buyerId: "u4",
+    sellerId: "u1",
+    otherUser: MOCK_USERS[3]!,
     lastMessage: "Can you do 58 for the shoes?",
     lastMessageAt: "2024-05-13T18:45:00Z",
     unreadCount: 2,
@@ -224,7 +248,7 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
       id: "i4",
       title: "Air Force 1 White",
       price: 65,
-      images: [require("../assets/images/item4.png")],
+      images: [MOCK_ITEMS[3]!.images[0]!],
     },
   },
 ];

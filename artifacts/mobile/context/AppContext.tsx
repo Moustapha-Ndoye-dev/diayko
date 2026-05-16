@@ -6,33 +6,13 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { api, ApiItem, ApiConversation, ApiUser } from "@/lib/api";
-import { MOCK_USERS } from "@/data/mockData";
+import { api, ApiItem, ApiUser } from "@/lib/api";
+import { Item, Seller, Condition, Conversation, ConversationItem } from "@/types";
+import { ApiConversation } from "@/lib/api";
 
-// Adapts an API item to the local Item shape the UI expects
-export function toItem(a: ApiItem) {
-  return {
-    id: a.id,
-    title: a.title,
-    brand: a.brand,
-    price: Number(a.price),
-    originalPrice: a.originalPrice != null ? Number(a.originalPrice) : undefined,
-    size: a.size,
-    condition: a.condition as any,
-    category: a.category,
-    images: a.images.length > 0 ? a.images : [require("../assets/images/item1.png")],
-    description: a.description,
-    seller: a.seller
-      ? toUser(a.seller)
-      : MOCK_USERS[0],
-    likes: a.likesCount,
-    views: a.viewsCount,
-    postedAt: a.createdAt.slice(0, 10),
-    color: a.color ?? undefined,
-  };
-}
+// ─── Adapters ─────────────────────────────────────────────────────────────────
 
-export function toUser(u: ApiUser) {
+export function toSeller(u: ApiUser): Seller {
   return {
     id: u.id,
     name: u.name,
@@ -47,27 +27,88 @@ export function toUser(u: ApiUser) {
   };
 }
 
-export type AppItem = ReturnType<typeof toItem>;
-export type AppUser = ReturnType<typeof toUser>;
+const PLACEHOLDER_SELLER: Seller = {
+  id: "unknown",
+  name: "Unknown seller",
+  rating: 0,
+  reviewCount: 0,
+  itemCount: 0,
+  followersCount: 0,
+  followingCount: 0,
+  joinedAt: "2024-01-01",
+  verified: false,
+};
+
+export function toItem(a: ApiItem): Item {
+  return {
+    id: a.id,
+    title: a.title,
+    brand: a.brand,
+    price: Number(a.price),
+    originalPrice:
+      a.originalPrice != null ? Number(a.originalPrice) : undefined,
+    size: a.size,
+    condition: a.condition as Condition,
+    category: a.category,
+    images: a.images,
+    description: a.description,
+    seller: a.seller ? toSeller(a.seller) : PLACEHOLDER_SELLER,
+    likesCount: a.likesCount,
+    viewsCount: a.viewsCount,
+    postedAt: a.createdAt.slice(0, 10),
+    color: a.color ?? undefined,
+  };
+}
+
+function toConversationItem(item: NonNullable<ApiConversation["item"]>): ConversationItem {
+  return {
+    id: item.id,
+    title: item.title,
+    price: Number(item.price),
+    images: item.images,
+  };
+}
+
+function toConversation(c: ApiConversation): Conversation | null {
+  if (!c.otherUser) return null;
+  return {
+    id: c.id,
+    buyerId: c.buyerId,
+    sellerId: c.sellerId,
+    otherUser: toSeller(c.otherUser),
+    lastMessage: c.lastMessage ?? undefined,
+    lastMessageAt: c.lastMessageAt ?? undefined,
+    unreadCount: c.unreadCount,
+    item: c.item ? toConversationItem(c.item) : undefined,
+  };
+}
+
+// ─── Context ──────────────────────────────────────────────────────────────────
+
+interface ListFilters {
+  category?: string;
+  q?: string;
+  size?: string;
+  condition?: string;
+}
 
 interface AppContextValue {
-  items: AppItem[];
-  favorites: string[];
-  conversations: ApiConversation[];
-  myListings: AppItem[];
-  loading: boolean;
+  items: Item[];
+  favorites: Set<string>;
+  conversations: Conversation[];
+  myListings: Item[];
+  isLoading: boolean;
   toggleFavorite: (itemId: string) => void;
-  addListing: (item: AppItem) => void;
+  addListing: (item: Item) => void;
   isFavorite: (itemId: string) => boolean;
-  currentUser: AppUser;
-  refreshItems: (params?: { category?: string; q?: string; size?: string; condition?: string }) => Promise<void>;
+  currentUser: Seller;
+  refreshItems: (filters?: ListFilters) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-// Fallback current user (local); in a real app this would come from auth
-const FALLBACK_USER = {
-  id: "local-user",
+const CURRENT_USER: Seller = {
+  id: "00000000-0000-0000-0000-000000000001",
   name: "Sophie Martin",
   bio: "Fashion lover, sustainable shopper.",
   rating: 4.9,
@@ -80,62 +121,63 @@ const FALLBACK_USER = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<AppItem[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [conversations, setConversations] = useState<ApiConversation[]>([]);
-  const [myListings, setMyListings] = useState<AppItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUser] = useState<AppUser>(FALLBACK_USER);
+  const [items, setItems] = useState<Item[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [myListings, setMyListings] = useState<Item[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refreshItems = useCallback(
-    async (params?: { category?: string; q?: string; size?: string; condition?: string }) => {
-      try {
-        const res = await api.items.list({ ...params, limit: 50 });
-        setItems(res.items.map(toItem));
-      } catch (err) {
-        console.warn("Failed to fetch items from API, keeping current state", err);
-      }
-    },
-    []
-  );
+  const refreshItems = useCallback(async (filters?: ListFilters) => {
+    try {
+      const res = await api.items.list({ ...filters, limit: 50 });
+      setItems(res.items.map(toItem));
+    } catch {
+      // Silently keep the existing state; screens handle their own error display
+    }
+  }, []);
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await refreshItems();
-      setLoading(false);
-    };
-    init();
+    setIsLoading(true);
+    refreshItems().finally(() => setIsLoading(false));
   }, [refreshItems]);
 
-  const toggleFavorite = (itemId: string) => {
-    setFavorites((prev) =>
-      prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
-    );
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              likes: favorites.includes(itemId)
-                ? item.likes - 1
-                : item.likes + 1,
-            }
-          : item
-      )
-    );
-    // Fire-and-forget like to API
-    api.items.like(itemId, currentUser.id).catch(() => {});
-  };
+  const toggleFavorite = useCallback(
+    (itemId: string) => {
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (next.has(itemId)) {
+          next.delete(itemId);
+        } else {
+          next.add(itemId);
+        }
+        return next;
+      });
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                likesCount: favorites.has(itemId)
+                  ? item.likesCount - 1
+                  : item.likesCount + 1,
+              }
+            : item
+        )
+      );
+      api.items.like(itemId, CURRENT_USER.id).catch(() => {});
+    },
+    [favorites]
+  );
 
-  const addListing = (item: AppItem) => {
+  const addListing = useCallback((item: Item) => {
     setItems((prev) => [item, ...prev]);
     setMyListings((prev) => [item, ...prev]);
-  };
+  }, []);
 
-  const isFavorite = (itemId: string) => favorites.includes(itemId);
+  const isFavorite = useCallback(
+    (itemId: string) => favorites.has(itemId),
+    [favorites]
+  );
 
   return (
     <AppContext.Provider
@@ -144,11 +186,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         favorites,
         conversations,
         myListings,
-        loading,
+        isLoading,
         toggleFavorite,
         addListing,
         isFavorite,
-        currentUser,
+        currentUser: CURRENT_USER,
         refreshItems,
       }}
     >
@@ -157,8 +199,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useApp() {
+export function useApp(): AppContextValue {
   const context = useContext(AppContext);
-  if (!context) throw new Error("useApp must be used within AppProvider");
+  if (!context) {
+    throw new Error("useApp must be used within AppProvider");
+  }
   return context;
 }

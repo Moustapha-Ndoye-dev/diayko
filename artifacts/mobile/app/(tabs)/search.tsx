@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { useDebounce } from "@/hooks/useDebounce";
 import { ItemCard } from "@/components/ItemCard";
 import { SearchBar } from "@/components/SearchBar";
+import { EmptyState } from "@/components/EmptyState";
 import { SIZES, CONDITIONS } from "@/data/mockData";
-import { Item } from "@/types";
+import { Item, Condition } from "@/types";
 
 const POPULAR_SEARCHES = [
   "Nike",
@@ -28,37 +30,75 @@ const POPULAR_SEARCHES = [
   "Levi's",
 ];
 
+interface Filters {
+  size: string | null;
+  condition: Condition | null;
+}
+
 export default function SearchScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { items } = useApp();
+
   const [query, setQuery] = useState("");
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedCondition, setSelectedCondition] = useState<Item["condition"] | null>(null);
+  const [filters, setFilters] = useState<Filters>({
+    size: null,
+    condition: null,
+  });
   const [showFilters, setShowFilters] = useState(false);
+
+  const debouncedQuery = useDebounce(query, 300);
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : 0;
+
+  const hasFilters = filters.size !== null || filters.condition !== null;
 
   const results = useMemo(() => {
     let filtered = items;
-    if (query.trim()) {
-      const q = query.toLowerCase();
+    if (debouncedQuery.trim()) {
+      const q = debouncedQuery.toLowerCase();
       filtered = filtered.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.brand.toLowerCase().includes(q) ||
-          i.description.toLowerCase().includes(q)
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.brand.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q)
       );
     }
-    if (selectedSize) {
-      filtered = filtered.filter((i) => i.size === selectedSize);
+    if (filters.size) {
+      filtered = filtered.filter((item) => item.size === filters.size);
     }
-    if (selectedCondition) {
-      filtered = filtered.filter((i) => i.condition === selectedCondition);
+    if (filters.condition) {
+      filtered = filtered.filter(
+        (item) => item.condition === filters.condition
+      );
     }
     return filtered;
-  }, [items, query, selectedSize, selectedCondition]);
+  }, [items, debouncedQuery, filters]);
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const hasFilters = !!selectedSize || !!selectedCondition;
+  const pairs = useMemo(() => {
+    const result: [Item, Item | undefined][] = [];
+    for (let i = 0; i < results.length; i += 2) {
+      result.push([results[i]!, results[i + 1]]);
+    }
+    return result;
+  }, [results]);
+
+  const setSize = useCallback((size: string) => {
+    setFilters((prev) => ({ ...prev, size: prev.size === size ? null : size }));
+  }, []);
+
+  const setCondition = useCallback((condition: Condition) => {
+    setFilters((prev) => ({
+      ...prev,
+      condition: prev.condition === condition ? null : condition,
+    }));
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters({ size: null, condition: null });
+  }, []);
+
+  const isSearching = debouncedQuery.trim().length > 0 || hasFilters;
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -78,7 +118,7 @@ export default function SearchScreen() {
     },
     title: {
       flex: 1,
-      fontSize: 20,
+      fontSize: 22,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
     },
@@ -105,14 +145,14 @@ export default function SearchScreen() {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    filterGroup: { marginTop: 10 },
+    filterGroup: { marginTop: 12 },
     filterLabel: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_600SemiBold",
       color: colors.mutedForeground,
       marginBottom: 8,
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: 0.6,
     },
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
     chip: {
@@ -122,10 +162,7 @@ export default function SearchScreen() {
       borderWidth: 1.5,
     },
     chipText: { fontSize: 13, fontFamily: "Inter_500Medium" },
-    clearFilters: {
-      marginTop: 12,
-      alignSelf: "flex-start",
-    },
+    clearBtn: { marginTop: 10, alignSelf: "flex-start" },
     clearText: {
       fontSize: 13,
       fontFamily: "Inter_500Medium",
@@ -133,7 +170,7 @@ export default function SearchScreen() {
     },
     popular: { padding: 16 },
     popularTitle: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
       marginBottom: 12,
@@ -162,33 +199,38 @@ export default function SearchScreen() {
     },
     row: { flexDirection: "row", gap: 12, marginBottom: 12 },
     grid: { padding: 12 },
-    emptyContainer: {
-      alignItems: "center",
-      paddingVertical: 60,
-    },
-    emptyTitle: {
-      marginTop: 16,
-      fontSize: 16,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-    },
-    emptyText: {
-      marginTop: 6,
-      fontSize: 14,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-      textAlign: "center",
-    },
-    bottomPad: { height: Platform.OS === "web" ? 34 : 0 },
+    footer: { height: bottomPad + 16 },
   });
 
-  const pairs = useMemo(() => {
-    const r = [];
-    for (let i = 0; i < results.length; i += 2) {
-      r.push([results[i], results[i + 1]]);
-    }
-    return r;
-  }, [results]);
+  const chip = (
+    label: string,
+    selected: boolean,
+    onPress: () => void
+  ) => (
+    <TouchableOpacity
+      key={label}
+      style={[
+        styles.chip,
+        {
+          borderColor: selected ? colors.primary : colors.border,
+          backgroundColor: selected ? colors.accent : colors.card,
+        },
+      ]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+    >
+      <Text
+        style={[
+          styles.chipText,
+          { color: selected ? colors.primary : colors.foreground },
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -197,7 +239,10 @@ export default function SearchScreen() {
           <Text style={styles.title}>Search</Text>
           <TouchableOpacity
             style={styles.filterBtn}
-            onPress={() => setShowFilters(!showFilters)}
+            onPress={() => setShowFilters((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle filters"
+            accessibilityState={{ expanded: showFilters }}
           >
             <Feather
               name="sliders"
@@ -205,6 +250,16 @@ export default function SearchScreen() {
               color={hasFilters ? colors.primary : colors.foreground}
             />
             <Text style={styles.filterBtnText}>Filters</Text>
+            {hasFilters && (
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: colors.primary,
+                }}
+              />
+            )}
           </TouchableOpacity>
         </View>
         <SearchBar
@@ -220,67 +275,26 @@ export default function SearchScreen() {
             <Text style={styles.filterLabel}>Size</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 6 }}>
-                {SIZES.map((s) => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[
-                      styles.chip,
-                      {
-                        borderColor: selectedSize === s ? colors.primary : colors.border,
-                        backgroundColor: selectedSize === s ? colors.accent : colors.card,
-                      },
-                    ]}
-                    onPress={() => setSelectedSize(selectedSize === s ? null : s)}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        { color: selectedSize === s ? colors.primary : colors.foreground },
-                      ]}
-                    >
-                      {s}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {SIZES.map((s) =>
+                  chip(s, filters.size === s, () => setSize(s))
+                )}
               </View>
             </ScrollView>
           </View>
           <View style={styles.filterGroup}>
             <Text style={styles.filterLabel}>Condition</Text>
             <View style={styles.chipRow}>
-              {CONDITIONS.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: selectedCondition === c ? colors.primary : colors.border,
-                      backgroundColor: selectedCondition === c ? colors.accent : colors.card,
-                    },
-                  ]}
-                  onPress={() =>
-                    setSelectedCondition(selectedCondition === c ? null : c)
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      { color: selectedCondition === c ? colors.primary : colors.foreground },
-                    ]}
-                  >
-                    {c}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {CONDITIONS.map((c) =>
+                chip(c, filters.condition === c, () => setCondition(c))
+              )}
             </View>
           </View>
           {hasFilters && (
             <TouchableOpacity
-              style={styles.clearFilters}
-              onPress={() => {
-                setSelectedSize(null);
-                setSelectedCondition(null);
-              }}
+              style={styles.clearBtn}
+              onPress={clearFilters}
+              accessibilityRole="button"
+              accessibilityLabel="Clear filters"
             >
               <Text style={styles.clearText}>Clear filters</Text>
             </TouchableOpacity>
@@ -288,7 +302,7 @@ export default function SearchScreen() {
         </View>
       )}
 
-      {!query && !hasFilters ? (
+      {!isSearching ? (
         <View style={styles.popular}>
           <Text style={styles.popularTitle}>Popular searches</Text>
           <View style={styles.tagRow}>
@@ -297,6 +311,8 @@ export default function SearchScreen() {
                 key={s}
                 style={styles.tag}
                 onPress={() => setQuery(s)}
+                accessibilityRole="button"
+                accessibilityLabel={`Search for ${s}`}
               >
                 <Text style={styles.tagText}>{s}</Text>
               </TouchableOpacity>
@@ -307,29 +323,33 @@ export default function SearchScreen() {
         <FlatList
           data={pairs}
           keyExtractor={(_, i) => String(i)}
-          renderItem={({ item }) => (
+          renderItem={({ item: [left, right] }) => (
             <View style={styles.row}>
-              <ItemCard item={item[0]} />
-              {item[1] ? <ItemCard item={item[1]} /> : <View style={{ flex: 1 }} />}
+              <ItemCard item={left} />
+              {right ? (
+                <ItemCard item={right} />
+              ) : (
+                <View style={{ flex: 1 }} />
+              )}
             </View>
           )}
           ListHeaderComponent={
             <View style={styles.resultsHeader}>
-              <Text style={styles.resultsCount}>{results.length} items found</Text>
+              <Text style={styles.resultsCount}>{results.length} results</Text>
             </View>
           }
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Feather name="search" size={48} color={colors.border} />
-              <Text style={styles.emptyTitle}>No results</Text>
-              <Text style={styles.emptyText}>
-                Try a different search term or adjust your filters
-              </Text>
-            </View>
+            <EmptyState
+              icon="search"
+              title="No results"
+              description="Try a different search term or adjust your filters."
+              actionLabel={hasFilters ? "Clear filters" : undefined}
+              onAction={hasFilters ? clearFilters : undefined}
+            />
           }
-          ListFooterComponent={<View style={styles.bottomPad} />}
+          ListFooterComponent={<View style={styles.footer} />}
         />
       )}
     </View>

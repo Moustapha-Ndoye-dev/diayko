@@ -9,13 +9,15 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
+import { EmptyState } from "@/components/EmptyState";
 import { Conversation } from "@/types";
 
-function timeAgo(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
+function formatRelativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
@@ -23,12 +25,17 @@ function timeAgo(isoString: string): string {
   return `${Math.floor(hours / 24)}d`;
 }
 
+const PLACEHOLDER_IMAGE =
+  "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=80&q=60";
+
 export default function InboxScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { conversations } = useApp();
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : 0;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -39,12 +46,10 @@ export default function InboxScreen() {
       backgroundColor: colors.card,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
-    },
-    headerRow: {
       flexDirection: "row",
       alignItems: "center",
     },
-    title: {
+    headerTitle: {
       flex: 1,
       fontSize: 22,
       fontFamily: "Inter_700Bold",
@@ -71,14 +76,14 @@ export default function InboxScreen() {
       width: 50,
       height: 50,
       borderRadius: 25,
-      backgroundColor: colors.muted,
+      backgroundColor: colors.primary,
       alignItems: "center",
       justifyContent: "center",
     },
     avatarText: {
       fontSize: 18,
       fontFamily: "Inter_600SemiBold",
-      color: colors.primary,
+      color: "#fff",
     },
     content: { flex: 1 },
     topLine: {
@@ -86,7 +91,7 @@ export default function InboxScreen() {
       justifyContent: "space-between",
       alignItems: "center",
     },
-    name: {
+    senderName: {
       fontSize: 15,
       fontFamily: "Inter_600SemiBold",
       color: colors.foreground,
@@ -96,22 +101,29 @@ export default function InboxScreen() {
       fontFamily: "Inter_400Regular",
       color: colors.mutedForeground,
     },
-    itemTitle: {
+    itemLabel: {
       fontSize: 12,
       fontFamily: "Inter_400Regular",
       color: colors.primary,
       marginBottom: 2,
     },
-    lastMsg: {
+    lastMessage: {
       fontSize: 14,
       fontFamily: "Inter_400Regular",
       color: colors.mutedForeground,
     },
-    lastMsgUnread: {
-      fontFamily: "Inter_500Medium",
+    lastMessageUnread: {
+      fontFamily: "Inter_600SemiBold",
       color: colors.foreground,
     },
-    badge: {
+    rightColumn: { alignItems: "flex-end", gap: 6 },
+    thumb: {
+      width: 44,
+      height: 44,
+      borderRadius: 6,
+      backgroundColor: colors.muted,
+    },
+    unreadBadge: {
       width: 20,
       height: 20,
       borderRadius: 10,
@@ -119,75 +131,100 @@ export default function InboxScreen() {
       alignItems: "center",
       justifyContent: "center",
     },
-    badgeText: {
+    unreadBadgeText: {
       fontSize: 11,
       fontFamily: "Inter_700Bold",
       color: "#fff",
     },
-    thumb: {
-      width: 44,
-      height: 44,
-      borderRadius: 6,
-      backgroundColor: colors.muted,
-    },
-    empty: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 12,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.foreground,
-    },
-    emptyText: {
-      fontSize: 14,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-      textAlign: "center",
-      paddingHorizontal: 40,
-    },
-    bottomPad: { height: bottomPad },
+    footer: { height: bottomPad + 16 },
   });
 
-  const renderItem = ({ item }: { item: Conversation }) => {
-    const initials = item.otherUser.name.split(" ").map((n) => n[0]).join("").toUpperCase();
+  const AVATAR_COLORS = [
+    "#09B1BA",
+    "#6c5ce7",
+    "#fd79a8",
+    "#00b894",
+    "#fdcb6e",
+  ];
+
+  const navigateToConversation = (conv: Conversation) => {
+    const initials = conv.otherUser.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+    router.push({
+      pathname: "/conversation/[id]",
+      params: {
+        id: conv.id,
+        otherUserName: conv.otherUser.name,
+        otherUserInitials: initials,
+        itemTitle: conv.item?.title ?? "",
+        itemPrice: conv.item?.price?.toString() ?? "",
+        itemImage: conv.item?.images[0] ?? "",
+      },
+    });
+  };
+
+  const renderItem = ({ item: conv, index }: { item: Conversation; index: number }) => {
+    const initials = conv.otherUser.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+    const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length]!;
+    const thumbUri =
+      conv.item?.images[0] ??
+      (conv.item ? PLACEHOLDER_IMAGE : undefined);
+
     return (
-      <TouchableOpacity style={styles.row} activeOpacity={0.7}>
-        <View style={styles.avatar}>
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => navigateToConversation(conv)}
+        activeOpacity={0.75}
+        accessibilityRole="button"
+        accessibilityLabel={`Conversation with ${conv.otherUser.name}`}
+      >
+        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
         <View style={styles.content}>
           <View style={styles.topLine}>
-            <Text style={styles.name}>{item.otherUser.name}</Text>
-            <Text style={styles.time}>{timeAgo(item.lastMessageAt)}</Text>
+            <Text style={styles.senderName}>{conv.otherUser.name}</Text>
+            {conv.lastMessageAt && (
+              <Text style={styles.time}>
+                {formatRelativeTime(conv.lastMessageAt)}
+              </Text>
+            )}
           </View>
-          {item.item && (
-            <Text style={styles.itemTitle} numberOfLines={1}>
-              {item.item.title} · {item.item.price} €
+          {conv.item && (
+            <Text style={styles.itemLabel} numberOfLines={1}>
+              {conv.item.title} · {conv.item.price} €
             </Text>
           )}
-          <Text
-            style={[styles.lastMsg, item.unreadCount > 0 && styles.lastMsgUnread]}
-            numberOfLines={1}
-          >
-            {item.lastMessage}
-          </Text>
+          {conv.lastMessage && (
+            <Text
+              style={[
+                styles.lastMessage,
+                conv.unreadCount > 0 && styles.lastMessageUnread,
+              ]}
+              numberOfLines={1}
+            >
+              {conv.lastMessage}
+            </Text>
+          )}
         </View>
-        <View style={{ alignItems: "flex-end", gap: 6 }}>
-          {item.item && (
+        <View style={styles.rightColumn}>
+          {thumbUri && (
             <Image
-              source={typeof item.item.images[0] === "string"
-                ? { uri: item.item.images[0] }
-                : item.item.images[0]}
+              source={{ uri: thumbUri }}
               style={styles.thumb}
               resizeMode="cover"
             />
           )}
-          {item.unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.unreadCount}</Text>
+          {conv.unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadBadgeText}>{conv.unreadCount}</Text>
             </View>
           )}
         </View>
@@ -198,28 +235,28 @@ export default function InboxScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>Inbox</Text>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Feather name="edit" size={18} color={colors.foreground} />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerTitle}>Inbox</Text>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          accessibilityRole="button"
+          accessibilityLabel="New message"
+        >
+          <Feather name="edit" size={18} color={colors.foreground} />
+        </TouchableOpacity>
       </View>
       <FlatList
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Feather name="message-circle" size={56} color={colors.border} />
-            <Text style={styles.emptyTitle}>No messages yet</Text>
-            <Text style={styles.emptyText}>
-              When you buy or sell an item, your conversations will appear here.
-            </Text>
-          </View>
-        }
-        ListFooterComponent={<View style={styles.bottomPad} />}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <EmptyState
+            icon="message-circle"
+            title="No messages yet"
+            description="When you buy or sell an item, your conversations will appear here."
+          />
+        }
+        ListFooterComponent={<View style={styles.footer} />}
       />
     </View>
   );

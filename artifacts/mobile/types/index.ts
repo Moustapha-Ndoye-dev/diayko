@@ -1,3 +1,25 @@
+export type Condition = "New with tags" | "Like new" | "Good" | "Fair";
+
+export type NotificationType =
+  | "message"
+  | "like"
+  | "sale"
+  | "price_drop"
+  | "order";
+
+export interface Seller {
+  id: string;
+  name: string;
+  bio?: string;
+  rating: number;
+  reviewCount: number;
+  itemCount: number;
+  followersCount: number;
+  followingCount: number;
+  joinedAt: string;
+  verified: boolean;
+}
+
 export interface Item {
   id: string;
   title: string;
@@ -5,46 +27,41 @@ export interface Item {
   price: number;
   originalPrice?: number;
   size: string;
-  condition: "New with tags" | "Like new" | "Good" | "Fair";
+  condition: Condition;
   category: string;
   images: string[];
   description: string;
-  seller: User;
-  likes: number;
-  views: number;
-  isLiked?: boolean;
+  seller: Seller;
+  likesCount: number;
+  viewsCount: number;
   postedAt: string;
   color?: string;
 }
 
-export interface User {
+export interface ConversationItem {
   id: string;
-  name: string;
-  avatar?: string;
-  rating: number;
-  reviewCount: number;
-  itemCount: number;
-  followersCount: number;
-  followingCount: number;
-  joinedAt: string;
-  verified?: boolean;
-  bio?: string;
+  title: string;
+  price: number;
+  images: string[];
 }
 
 export interface Conversation {
   id: string;
-  otherUser: User;
-  lastMessage: string;
-  lastMessageAt: string;
+  buyerId: string;
+  sellerId: string;
+  otherUser: Seller;
+  lastMessage?: string;
+  lastMessageAt?: string;
   unreadCount: number;
-  item?: Pick<Item, "id" | "title" | "price" | "images">;
+  item?: ConversationItem;
 }
 
 export interface Message {
   id: string;
+  conversationId: string;
+  senderId: string;
   text: string;
   sentAt: string;
-  isOwn: boolean;
 }
 
 export interface Category {
@@ -53,13 +70,29 @@ export interface Category {
   icon: string;
 }
 
-export type SellFormData = {
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+  itemId?: string;
+}
+
+export interface SellFormData {
   title: string;
   description: string;
   brand: string;
   size: string;
-  condition: Item["condition"];
+  condition: Condition;
   category: string;
   price: string;
   color: string;
-};
+}
+
+export type AsyncState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; message: string };

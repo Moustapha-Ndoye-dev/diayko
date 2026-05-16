@@ -1,36 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { ItemCard } from "@/components/ItemCard";
 import { StarRating } from "@/components/StarRating";
+import { EmptyState } from "@/components/EmptyState";
+import { Item } from "@/types";
 
-type Tab = "listings" | "favorites";
+type ProfileTab = "listings" | "favourites";
+
+interface MenuItemProps {
+  icon: string;
+  label: string;
+  badge?: string;
+  onPress: () => void;
+}
+
+function MenuItem({ icon, label, badge, onPress }: MenuItemProps) {
+  const colors = useColors();
+  return (
+    <TouchableOpacity
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.separator,
+      }}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <Feather name={icon as any} size={18} color={colors.mutedForeground} />
+      <Text
+        style={{
+          flex: 1,
+          fontSize: 15,
+          fontFamily: "Inter_400Regular",
+          color: colors.foreground,
+        }}
+      >
+        {label}
+      </Text>
+      {badge ? (
+        <View
+          style={{
+            backgroundColor: colors.primary,
+            borderRadius: 10,
+            paddingHorizontal: 7,
+            paddingVertical: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "Inter_700Bold",
+              color: "#fff",
+            }}
+          >
+            {badge}
+          </Text>
+        </View>
+      ) : null}
+      <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+    </TouchableOpacity>
+  );
+}
 
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { currentUser, items, favorites, myListings } = useApp();
-  const [tab, setTab] = useState<Tab>("listings");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("listings");
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : 0;
 
   const displayItems =
-    tab === "listings"
-      ? items.filter((i) => i.seller.id === currentUser.id)
-      : items.filter((i) => favorites.includes(i.id));
+    activeTab === "listings"
+      ? items.filter((item) => item.seller.id === currentUser.id)
+      : items.filter((item) => favorites.has(item.id));
 
-  const initials = currentUser.name.split(" ").map((n) => n[0]).join("").toUpperCase();
+  const initials = currentUser.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
+  const pairs: [Item, Item | undefined][] = [];
+  for (let i = 0; i < displayItems.length; i += 2) {
+    pairs.push([displayItems[i]!, displayItems[i + 1]]);
+  }
+
+  const handleTabChange = useCallback((tab: ProfileTab) => {
+    setActiveTab(tab);
+  }, []);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -50,7 +128,7 @@ export default function ProfileScreen() {
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
     },
-    settingsBtn: {
+    moreBtn: {
       width: 38,
       height: 38,
       borderRadius: 19,
@@ -81,21 +159,12 @@ export default function ProfileScreen() {
       fontFamily: "Inter_700Bold",
       color: "#fff",
     },
-    nameBlock: { flex: 1, gap: 4 },
+    nameBlock: { flex: 1, gap: 5 },
+    nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
     name: {
       fontSize: 20,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
-    },
-    verifiedRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-    },
-    verifiedText: {
-      fontSize: 12,
-      fontFamily: "Inter_500Medium",
-      color: colors.primary,
     },
     editBtn: {
       borderWidth: 1.5,
@@ -113,11 +182,12 @@ export default function ProfileScreen() {
       fontSize: 14,
       fontFamily: "Inter_400Regular",
       color: colors.mutedForeground,
+      lineHeight: 20,
     },
+    divider: { height: 1, backgroundColor: colors.border },
     statsRow: {
       flexDirection: "row",
       justifyContent: "space-around",
-      paddingVertical: 4,
     },
     stat: { alignItems: "center", gap: 2 },
     statValue: {
@@ -130,12 +200,19 @@ export default function ProfileScreen() {
       fontFamily: "Inter_400Regular",
       color: colors.mutedForeground,
     },
-    divider: { height: 1, backgroundColor: colors.border, marginVertical: 2 },
+    menuSection: {
+      backgroundColor: colors.card,
+      marginTop: 10,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+    },
     tabRow: {
       flexDirection: "row",
       backgroundColor: colors.card,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+      marginTop: 10,
     },
     tabBtn: {
       flex: 1,
@@ -147,47 +224,10 @@ export default function ProfileScreen() {
       fontSize: 14,
       fontFamily: "Inter_600SemiBold",
     },
-    grid: { padding: 12 },
     row: { flexDirection: "row", gap: 12, marginBottom: 12 },
-    empty: {
-      alignItems: "center",
-      paddingVertical: 60,
-      gap: 12,
-    },
-    emptyText: {
-      fontSize: 15,
-      fontFamily: "Inter_400Regular",
-      color: colors.mutedForeground,
-    },
-    bottomPad: { height: bottomPad },
-    menuSection: {
-      backgroundColor: colors.card,
-      marginTop: 12,
-      borderTopWidth: 1,
-      borderBottomWidth: 1,
-      borderColor: colors.border,
-    },
-    menuItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      gap: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.separator,
-    },
-    menuLabel: {
-      flex: 1,
-      fontSize: 15,
-      fontFamily: "Inter_400Regular",
-      color: colors.foreground,
-    },
+    grid: { padding: 12 },
+    footer: { height: bottomPad + 16 },
   });
-
-  const pairs: any[] = [];
-  for (let i = 0; i < displayItems.length; i += 2) {
-    pairs.push([displayItems[i], displayItems[i + 1]]);
-  }
 
   const renderHeader = () => (
     <View>
@@ -197,23 +237,30 @@ export default function ProfileScreen() {
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={styles.nameBlock}>
-            <Text style={styles.name}>{currentUser.name}</Text>
-            {currentUser.verified && (
-              <View style={styles.verifiedRow}>
-                <Feather name="check-circle" size={13} color={colors.primary} />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
-            )}
-            <StarRating rating={currentUser.rating} count={currentUser.reviewCount} size={13} />
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{currentUser.name}</Text>
+              {currentUser.verified && (
+                <Feather name="check-circle" size={16} color={colors.primary} />
+              )}
+            </View>
+            <StarRating
+              rating={currentUser.rating}
+              count={currentUser.reviewCount}
+              size={13}
+            />
           </View>
-          <TouchableOpacity style={styles.editBtn}>
+          <TouchableOpacity
+            style={styles.editBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile"
+          >
             <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
         </View>
 
-        {currentUser.bio && (
+        {currentUser.bio ? (
           <Text style={styles.bio}>{currentUser.bio}</Text>
-        )}
+        ) : null}
 
         <View style={styles.divider} />
 
@@ -234,39 +281,62 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.menuSection}>
-        {[
-          { icon: "package", label: "My purchases" },
-          { icon: "truck", label: "Shipments" },
-          { icon: "credit-card", label: "Wallet" },
-          { icon: "settings", label: "Settings" },
-        ].map((item, i) => (
-          <TouchableOpacity key={i} style={styles.menuItem} activeOpacity={0.7}>
-            <Feather name={item.icon as any} size={18} color={colors.mutedForeground} />
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        ))}
+        <MenuItem
+          icon="package"
+          label="My purchases"
+          onPress={() => {}}
+        />
+        <MenuItem
+          icon="truck"
+          label="Shipments"
+          onPress={() => {}}
+        />
+        <MenuItem
+          icon="credit-card"
+          label="Wallet"
+          onPress={() => {}}
+        />
+        <MenuItem
+          icon="bell"
+          label="Notifications"
+          badge="3"
+          onPress={() => router.push("/notifications")}
+        />
+        <MenuItem
+          icon="settings"
+          label="Settings"
+          onPress={() => router.push("/settings")}
+        />
       </View>
 
       <View style={styles.tabRow}>
-        {(["listings", "favorites"] as Tab[]).map((t) => (
+        {(["listings", "favourites"] as ProfileTab[]).map((tab) => (
           <TouchableOpacity
-            key={t}
+            key={tab}
             style={[
               styles.tabBtn,
               {
-                borderBottomColor: tab === t ? colors.primary : "transparent",
+                borderBottomColor:
+                  activeTab === tab ? colors.primary : "transparent",
               },
             ]}
-            onPress={() => setTab(t)}
+            onPress={() => handleTabChange(tab)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
+            accessibilityLabel={tab === "listings" ? "My listings" : "My favourites"}
           >
             <Text
               style={[
                 styles.tabText,
-                { color: tab === t ? colors.primary : colors.mutedForeground },
+                {
+                  color:
+                    activeTab === tab
+                      ? colors.primary
+                      : colors.mutedForeground,
+                },
               ]}
             >
-              {t === "listings" ? "Listings" : "Favourites"}
+              {tab === "listings" ? "Listings" : "Favourites"}
             </Text>
           </TouchableOpacity>
         ))}
@@ -278,35 +348,48 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My profile</Text>
-        <TouchableOpacity style={styles.settingsBtn}>
-          <Feather name="more-horizontal" size={20} color={colors.foreground} />
+        <TouchableOpacity
+          style={styles.moreBtn}
+          onPress={() => router.push("/settings")}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
+          <Feather name="settings" size={18} color={colors.foreground} />
         </TouchableOpacity>
       </View>
+
       <FlatList
         data={pairs}
         keyExtractor={(_, i) => String(i)}
-        renderItem={({ item }) => (
+        renderItem={({ item: [left, right] }) => (
           <View style={styles.row}>
-            <ItemCard item={item[0]} />
-            {item[1] ? <ItemCard item={item[1]} /> : <View style={{ flex: 1 }} />}
+            <ItemCard item={left} />
+            {right ? (
+              <ItemCard item={right} />
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
           </View>
         )}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Feather
-              name={tab === "listings" ? "shopping-bag" : "heart"}
-              size={48}
-              color={colors.border}
-            />
-            <Text style={styles.emptyText}>
-              {tab === "listings" ? "No listings yet" : "No favourites yet"}
-            </Text>
-          </View>
+          <EmptyState
+            icon={activeTab === "listings" ? "shopping-bag" : "heart"}
+            title={
+              activeTab === "listings"
+                ? "No listings yet"
+                : "No favourites yet"
+            }
+            description={
+              activeTab === "listings"
+                ? "Tap the Sell tab to list your first item."
+                : "Heart items you like to save them here."
+            }
+          />
         }
-        ListFooterComponent={<View style={styles.bottomPad} />}
+        ListFooterComponent={<View style={styles.footer} />}
       />
     </View>
   );

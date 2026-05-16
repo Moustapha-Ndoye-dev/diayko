@@ -18,18 +18,42 @@ import { AppProvider } from "@/context/AppContext";
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerBackTitle: "Back" }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="onboarding"
+        options={{ gestureEnabled: false, animation: "fade" }}
+      />
       <Stack.Screen
         name="item/[id]"
-        options={{
-          headerShown: false,
-          presentation: "card",
-        }}
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="conversation/[id]"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="seller/[id]"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="notifications"
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="settings"
+        options={{ animation: "slide_from_right" }}
       />
     </Stack>
   );
@@ -56,7 +80,7 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AppProvider>
-            <GestureHandlerRootView>
+            <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
               </KeyboardProvider>
