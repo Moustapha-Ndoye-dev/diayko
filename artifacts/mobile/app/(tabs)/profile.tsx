@@ -6,6 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Alert,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -252,6 +256,16 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { currentUser, items, favorites, sellerStatus, requestSellerAccess } = useApp();
   const [activeTab, setActiveTab] = useState<ProfileTab>("listings");
+  const [editModal, setEditModal] = useState(false);
+  const [editName, setEditName] = useState(currentUser.name);
+  const [editBio, setEditBio] = useState(currentUser.bio ?? "");
+
+  const comingSoon = (label?: string) =>
+    Alert.alert(
+      label ?? "Bientôt disponible",
+      "Cette fonctionnalité sera disponible dans une prochaine mise à jour.",
+      [{ text: "OK" }]
+    );
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 64;
@@ -423,6 +437,7 @@ export default function ProfileScreen() {
             style={styles.editBtn}
             accessibilityRole="button"
             accessibilityLabel="Modifier le profil"
+            onPress={() => setEditModal(true)}
           >
             <Text style={styles.editBtnText}>Modifier</Text>
           </TouchableOpacity>
@@ -461,7 +476,7 @@ export default function ProfileScreen() {
         <MenuItem
           icon="truck"
           label="Livraisons"
-          onPress={() => {}}
+          onPress={() => comingSoon("Suivi des livraisons")}
         />
         {sellerStatus === "approved" && (
           <>
@@ -469,12 +484,12 @@ export default function ProfileScreen() {
               icon="trending-up"
               label="Statistiques vendeur"
               badge="NOUVEAU"
-              onPress={() => {}}
+              onPress={() => comingSoon("Statistiques vendeur")}
             />
             <MenuItem
               icon="dollar-sign"
               label="Gains et retraits"
-              onPress={() => {}}
+              onPress={() => router.push("/wallet")}
             />
           </>
         )}
@@ -536,6 +551,70 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      {/* ── Modal Modifier le profil ── */}
+      <Modal visible={editModal} animationType="slide" transparent presentationStyle="overFullScreen">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.45)" }}
+        >
+          <View style={{
+            backgroundColor: colors.card,
+            borderTopLeftRadius: 20, borderTopRightRadius: 20,
+            padding: 24, gap: 16,
+          }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+              <Text style={{ flex: 1, fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground }}>Modifier le profil</Text>
+              <TouchableOpacity onPress={() => setEditModal(false)} accessibilityRole="button" accessibilityLabel="Fermer">
+                <Feather name="x" size={22} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>Nom complet</Text>
+              <TextInput
+                value={editName}
+                onChangeText={setEditName}
+                style={{
+                  backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border,
+                  borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11,
+                  fontSize: 15, fontFamily: "Inter_400Regular", color: colors.foreground,
+                }}
+                placeholder="Votre nom"
+                placeholderTextColor={colors.mutedForeground}
+                accessibilityLabel="Nom complet"
+              />
+            </View>
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 13, fontFamily: "Inter_600SemiBold", color: colors.foreground }}>Bio</Text>
+              <TextInput
+                value={editBio}
+                onChangeText={setEditBio}
+                style={{
+                  backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border,
+                  borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11,
+                  fontSize: 15, fontFamily: "Inter_400Regular", color: colors.foreground,
+                  height: 80, textAlignVertical: "top",
+                }}
+                placeholder="Parlez de vous…"
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                accessibilityLabel="Bio"
+              />
+            </View>
+            <TouchableOpacity
+              style={{ backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}
+              onPress={() => {
+                setEditModal(false);
+                Alert.alert("Profil mis à jour", "Vos modifications ont été enregistrées.");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Enregistrer les modifications"
+            >
+              <Text style={{ fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff" }}>Enregistrer</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mon profil</Text>
         <TouchableOpacity

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -211,6 +212,18 @@ export default function MyPurchasesScreen() {
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel="Voir les détails"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/conversation/[id]",
+                      params: {
+                        id: `platform-order-${order.id}`,
+                        itemTitle: order.itemTitle,
+                        itemPrice: String(order.price),
+                        itemImage: order.imageUri,
+                        initialMessage: `📦 Commande du ${order.date} — ${order.itemTitle} (${order.deliveryMethod}). Statut : ${STATUS_CONFIG[order.status].label}.`,
+                      },
+                    })
+                  }
                 >
                   <Text style={styles.orderBtnText}>Détails</Text>
                 </TouchableOpacity>
@@ -220,6 +233,7 @@ export default function MyPurchasesScreen() {
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel="Racheter"
+                    onPress={() => router.push("/(tabs)/search")}
                   >
                     <Text style={[styles.orderBtnText, { color: colors.primary }]}>Racheter</Text>
                   </TouchableOpacity>

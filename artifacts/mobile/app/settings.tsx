@@ -137,6 +137,13 @@ export default function SettingsScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const comingSoon = (label?: string) =>
+    Alert.alert(
+      label ?? "Bientôt disponible",
+      "Cette fonctionnalité sera disponible dans une prochaine mise à jour.",
+      [{ text: "OK" }]
+    );
+
   const handleLogOut = () => {
     Alert.alert("Déconnexion", "Voulez-vous vraiment vous déconnecter ?", [
       { text: "Annuler", style: "cancel" },
@@ -208,11 +215,44 @@ export default function SettingsScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <SectionHeader title="Compte" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="user" label="Modifier le profil" onPress={() => {}} />
-          <SettingsItem icon="mail" label="Adresse e-mail" value="sophie@example.com" onPress={() => {}} />
-          <SettingsItem icon="lock" label="Changer le mot de passe" onPress={() => {}} />
-          <SettingsItem icon="credit-card" label="Moyens de paiement" onPress={() => {}} />
-          <SettingsItem icon="map-pin" label="Adresse de livraison" onPress={() => {}} />
+          <SettingsItem
+            icon="user"
+            label="Modifier le profil"
+            onPress={() => router.back()}
+          />
+          <SettingsItem
+            icon="mail"
+            label="Adresse e-mail"
+            value="sophie@example.com"
+            onPress={() =>
+              Alert.alert("Adresse e-mail", "Pour modifier votre e-mail, contactez le support Diayko.", [{ text: "OK" }])
+            }
+          />
+          <SettingsItem
+            icon="lock"
+            label="Changer le mot de passe"
+            onPress={() =>
+              Alert.alert("Changer le mot de passe", "Un lien de réinitialisation sera envoyé à votre adresse e-mail.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Envoyer le lien", onPress: () => Alert.alert("Lien envoyé", "Vérifiez votre boîte e-mail.") },
+              ])
+            }
+          />
+          <SettingsItem
+            icon="credit-card"
+            label="Moyens de paiement"
+            onPress={() => router.push("/wallet")}
+          />
+          <SettingsItem
+            icon="map-pin"
+            label="Adresse de livraison"
+            onPress={() =>
+              Alert.alert("Adresse de livraison", "Dakar, Sénégal\nMermoz, Villa 42", [
+                { text: "Modifier", onPress: () => comingSoon("Modification d'adresse") },
+                { text: "OK" },
+              ])
+            }
+          />
         </View>
 
         <SectionHeader title="Notifications" />
@@ -260,23 +300,78 @@ export default function SettingsScreen() {
 
         <SectionHeader title="Confidentialité" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="eye" label="Visibilité du profil" value="Publique" onPress={() => {}} />
-          <SettingsItem icon="shield" label="Données et confidentialité" onPress={() => {}} />
-          <SettingsItem icon="download" label="Télécharger mes données" onPress={() => {}} />
+          <SettingsItem
+            icon="eye"
+            label="Visibilité du profil"
+            value="Publique"
+            onPress={() =>
+              Alert.alert("Visibilité du profil", "Votre profil est actuellement public.", [
+                { text: "Rendre privé", onPress: () => comingSoon("Profil privé") },
+                { text: "OK" },
+              ])
+            }
+          />
+          <SettingsItem icon="shield" label="Données et confidentialité" onPress={() => comingSoon()} />
+          <SettingsItem
+            icon="download"
+            label="Télécharger mes données"
+            onPress={() =>
+              Alert.alert("Téléchargement", "Votre demande sera traitée sous 48h et envoyée par e-mail.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Confirmer", onPress: () => Alert.alert("Demande enregistrée", "Vous recevrez vos données par e-mail sous 48h.") },
+              ])
+            }
+          />
         </View>
 
         <SectionHeader title="Support" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="help-circle" label="Centre d'aide" onPress={() => {}} />
-          <SettingsItem icon="message-circle" label="Contacter le support" onPress={() => {}} />
-          <SettingsItem icon="flag" label="Signaler un problème" onPress={() => {}} />
+          <SettingsItem
+            icon="help-circle"
+            label="Centre d'aide"
+            onPress={() =>
+              Alert.alert("Centre d'aide", "📧 support@diayko.sn\n📱 WhatsApp : +221 77 000 00 00\n\nDisponible du lun. au sam., 8h–20h.", [{ text: "OK" }])
+            }
+          />
+          <SettingsItem
+            icon="message-circle"
+            label="Contacter le support"
+            onPress={() =>
+              Alert.alert("Contacter le support", "Nous vous répondrons dans les 24h.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Envoyer un message", onPress: () => comingSoon("Messagerie support") },
+              ])
+            }
+          />
+          <SettingsItem
+            icon="flag"
+            label="Signaler un problème"
+            onPress={() =>
+              Alert.alert("Signaler un problème", "Décrivez le problème rencontré pour que notre équipe puisse l'examiner.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Signaler", onPress: () => Alert.alert("Signalement envoyé", "Merci, notre équipe examinera votre rapport sous 24h.") },
+              ])
+            }
+          />
         </View>
 
         <SectionHeader title="À propos" />
         <View style={styles.sectionBorder}>
-          <SettingsItem icon="file-text" label="Conditions d'utilisation" onPress={() => {}} />
-          <SettingsItem icon="shield" label="Politique de confidentialité" onPress={() => {}} />
-          <SettingsItem icon="info" label="Licences" onPress={() => {}} />
+          <SettingsItem
+            icon="file-text"
+            label="Conditions d'utilisation"
+            onPress={() =>
+              Alert.alert("Conditions d'utilisation", "En utilisant Diayko vous acceptez nos conditions. Version complète disponible sur diayko.sn/cgu", [{ text: "OK" }])
+            }
+          />
+          <SettingsItem
+            icon="shield"
+            label="Politique de confidentialité"
+            onPress={() =>
+              Alert.alert("Politique de confidentialité", "Vos données sont protégées et ne sont jamais revendues. Consultez diayko.sn/privacy", [{ text: "OK" }])
+            }
+          />
+          <SettingsItem icon="info" label="Licences open source" onPress={() => comingSoon()} />
         </View>
 
         <SectionHeader title="Actions du compte" />

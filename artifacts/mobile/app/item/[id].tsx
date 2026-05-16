@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   TextInput,
   Modal,
+  Share,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -95,6 +96,17 @@ export default function ItemDetailScreen() {
       },
     });
   }, [offerAmount, item, id, router]);
+
+  const handleShare = useCallback(async () => {
+    if (!item) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Share.share({
+        message: `🛍️ ${item.title} — ${item.price} FCFA sur Diayko\nDécouvrez cet article de seconde main sur le marketplace sénégalais Diayko.`,
+        title: item.title,
+      });
+    } catch {}
+  }, [item]);
 
   const handleAskQuestion = useCallback(() => {
     if (!item) return;
@@ -333,6 +345,7 @@ export default function ItemDetailScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.navBtn}
+                onPress={handleShare}
                 accessibilityRole="button"
                 accessibilityLabel="Partager l'article"
               >

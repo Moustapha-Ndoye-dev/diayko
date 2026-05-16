@@ -201,7 +201,8 @@ export default function InboxScreen() {
         <TouchableOpacity
           style={styles.iconBtn}
           accessibilityRole="button"
-          accessibilityLabel="Nouveau message"
+          accessibilityLabel="Chercher un article"
+          onPress={() => router.push("/(tabs)/search")}
         >
           <Feather name="edit" size={18} color={colors.foreground} />
         </TouchableOpacity>

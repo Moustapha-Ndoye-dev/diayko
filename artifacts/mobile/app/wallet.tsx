@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -40,6 +41,32 @@ export default function WalletScreen() {
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const balance = 21000;
+
+  const comingSoon = () =>
+    Alert.alert("Bientôt disponible", "Cette fonctionnalité sera disponible dans une prochaine mise à jour.", [{ text: "OK" }]);
+
+  const handleRecharge = () =>
+    Alert.alert(
+      "Recharger le portefeuille",
+      "Choisissez un moyen de paiement pour ajouter des fonds.",
+      [
+        { text: "Wave", onPress: comingSoon },
+        { text: "Orange Money", onPress: comingSoon },
+        { text: "Free Money", onPress: comingSoon },
+        { text: "Annuler", style: "cancel" },
+      ]
+    );
+
+  const handleRetrait = () =>
+    Alert.alert(
+      "Retirer des fonds",
+      `Solde disponible : ${fcfa(balance)}. Choisissez le compte de réception.`,
+      [
+        { text: "Vers Wave", onPress: comingSoon },
+        { text: "Vers Orange Money", onPress: comingSoon },
+        { text: "Annuler", style: "cancel" },
+      ]
+    );
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
@@ -183,11 +210,11 @@ export default function WalletScreen() {
           <Text style={styles.balanceAmount}>{fcfa(balance)}</Text>
           <Text style={styles.balanceNote}>Utilisable pour vos achats sur Diayko</Text>
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Ajouter des fonds">
+            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Ajouter des fonds" onPress={handleRecharge}>
               <Feather name="plus" size={16} color="#fff" />
               <Text style={styles.actionBtnText}>Recharger</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Retirer">
+            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Retirer" onPress={handleRetrait}>
               <Feather name="arrow-up" size={16} color="#fff" />
               <Text style={styles.actionBtnText}>Retirer</Text>
             </TouchableOpacity>
@@ -210,6 +237,7 @@ export default function WalletScreen() {
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={m.label}
+              onPress={() => Alert.alert(m.label, `Compte ${m.label} lié à votre portefeuille Diayko.\nLes retraits vers ce compte sont disponibles sous 24h.`, [{ text: "OK" }])}
             >
               <View style={[styles.methodIconCircle, { backgroundColor: m.color + "1A" }]}>
                 <Feather name={m.icon as any} size={18} color={m.color} />
@@ -219,7 +247,7 @@ export default function WalletScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={styles.addBtn} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Ajouter un compte">
+        <TouchableOpacity style={styles.addBtn} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Ajouter un compte" onPress={comingSoon}>
           <Feather name="plus-circle" size={18} color={colors.primary} />
           <Text style={styles.addBtnText}>Ajouter un compte de paiement</Text>
         </TouchableOpacity>
