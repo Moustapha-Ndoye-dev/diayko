@@ -1,42 +1,12 @@
 import { BlurView } from "expo-blur";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs, useRouter } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
-import { SymbolView } from "expo-symbols";
-import { Feather } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { ShopIcon, SearchIcon, SellIcon, InboxIcon, ProfileIcon } from "@/components/Icons";
 
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { storage } from "@/lib/storage";
-
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "bag", selected: "bag.fill" }} />
-        <Label>Accueil</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="search">
-        <Icon sf={{ default: "magnifyingglass", selected: "magnifyingglass" }} />
-        <Label>Recherche</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="sell">
-        <Icon sf={{ default: "tag", selected: "tag.fill" }} />
-        <Label>Vendre</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="inbox">
-        <Icon sf={{ default: "bubble.left.and.bubble.right", selected: "bubble.left.and.bubble.right.fill" }} />
-        <Label>Messages</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
-        <Label>Profil</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
-}
 
 function ClassicTabLayout() {
   const colors = useColors();
@@ -96,72 +66,42 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: "Accueil",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="bag" tintColor={color} size={24} />
-            ) : (
-              <Feather name="shopping-bag" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => <ShopIcon color={color} size={24} filled={focused} />,
         }}
       />
 
-      {/* 🔍 Recherche — loupe = recherche et découverte */}
       <Tabs.Screen
         name="search"
         options={{
           title: "Recherche",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="magnifyingglass" tintColor={color} size={24} />
-            ) : (
-              <Feather name="search" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => <SearchIcon color={color} size={24} filled={focused} />,
         }}
       />
 
-      {/* 🏷 Vendre — étiquette prix = mise en vente d'un article
-           Masqué pour les non-vendeurs (href: null retire l'onglet de la barre) */}
       <Tabs.Screen
         name="sell"
         options={{
           href: sellerStatus === "approved" ? undefined : null,
           title: "Vendre",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="tag.fill" tintColor={color} size={24} />
-            ) : (
-              <Feather name="tag" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => <SellIcon color={color} size={24} filled={focused} />,
         }}
       />
 
-      {/* 💬 Messages — bulles = conversations */}
       <Tabs.Screen
         name="inbox"
         options={{
           title: "Messages",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="bubble.left.and.bubble.right" tintColor={color} size={24} />
-            ) : (
-              <Feather name="message-square" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => <InboxIcon color={color} size={24} filled={focused} />,
           tabBarBadge: 3,
           tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 11 },
         }}
       />
 
-      {/* 👤 Profil — cercle personne = compte utilisateur */}
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profil",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="person.circle" tintColor={color} size={24} />
-            ) : (
-              <Feather name="user-check" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color, focused }) => <ProfileIcon color={color} size={24} filled={focused} />,
         }}
       />
     </Tabs>

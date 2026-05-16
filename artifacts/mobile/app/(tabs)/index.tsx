@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { HeartIcon, BellIcon } from "@/components/Icons";
 import { useColors } from "@/hooks/useColors";
 import { useApp } from "@/context/AppContext";
 import { ItemCard } from "@/components/ItemCard";
@@ -165,7 +165,7 @@ export default function BrowseScreen() {
               accessibilityRole="button"
               accessibilityLabel="Favoris"
             >
-              <Feather name="heart" size={18} color={colors.foreground} />
+              <HeartIcon size={20} color={colors.foreground} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconBtn}
@@ -173,7 +173,7 @@ export default function BrowseScreen() {
               accessibilityRole="button"
               accessibilityLabel="Notifications"
             >
-              <Feather name="bell" size={18} color={colors.foreground} />
+              <BellIcon size={20} color={colors.foreground} />
               <View style={styles.notifDot} />
             </TouchableOpacity>
           </View>
