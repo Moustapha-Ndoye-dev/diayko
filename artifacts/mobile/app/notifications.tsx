@@ -22,7 +22,7 @@ const ICON_FOR_TYPE: Record<NotificationType, string> = {
 };
 
 const COLOR_FOR_TYPE: Record<NotificationType, string> = {
-  message: "#09B1BA",
+  message: "#00853F",
   like: "#e74c3c",
   sale: "#6c5ce7",
   price_drop: "#fd79a8",

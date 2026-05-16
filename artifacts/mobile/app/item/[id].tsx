@@ -114,7 +114,7 @@ export default function ItemDetailScreen() {
       <View
         style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}
       >
-        <ActivityIndicator color="#09B1BA" />
+        <ActivityIndicator color="#00853F" />
       </View>
     );
   }

@@ -1,37 +1,59 @@
+/**
+ * Diayko design tokens — palette "Sénégal"
+ *
+ * Inspired by:
+ *   - Drapeau sénégalais : vert #00853F · or #F5C518 · rouge
+ *   - Architecture de Dakar : ocre, sable, terracotta
+ *   - Nature : baobab, mer, soleil levant
+ */
 const colors = {
   light: {
-    text: "#1a1a1a",
-    tint: "#09B1BA",
+    text: "#1A1E1A",
 
-    background: "#f5f5f5",
-    foreground: "#1a1a1a",
+    // Tint is used by Expo Router for the active tab icon.
+    tint: "#00853F",
 
-    card: "#ffffff",
-    cardForeground: "#1a1a1a",
+    // ── Backgrounds ────────────────────────────────────────────────────────
+    /** Warm sandy cream — like Saly or Casamance beaches. */
+    background: "#FDF8F0",
+    foreground: "#1A1E1A",
 
-    primary: "#09B1BA",
-    primaryForeground: "#ffffff",
+    // ── Card ───────────────────────────────────────────────────────────────
+    card: "#FFFFFF",
+    cardForeground: "#1A1E1A",
 
-    secondary: "#f0f0f0",
-    secondaryForeground: "#1a1a1a",
+    // ── Primary — Senegalese flag green ────────────────────────────────────
+    primary: "#00853F",
+    primaryForeground: "#FFFFFF",
 
-    muted: "#f0f0f0",
-    mutedForeground: "#888888",
+    // ── Secondary — warm sand ──────────────────────────────────────────────
+    secondary: "#F5EDE0",
+    secondaryForeground: "#1A1E1A",
 
-    accent: "#e8f9fa",
-    accentForeground: "#09B1BA",
+    // ── Muted — earthy baobab tones ────────────────────────────────────────
+    muted: "#F5EDE0",
+    mutedForeground: "#7B6B52",
 
-    destructive: "#e74c3c",
-    destructiveForeground: "#ffffff",
+    // ── Accent — light green for highlights / info cards ──────────────────
+    accent: "#EEFAF2",
+    accentForeground: "#00853F",
 
-    border: "#e8e8e8",
-    input: "#e8e8e8",
+    // ── Semantic ───────────────────────────────────────────────────────────
+    destructive: "#C84B1C",
+    destructiveForeground: "#FFFFFF",
 
-    success: "#27ae60",
-    warning: "#f39c12",
+    /** Gold — étoile du drapeau sénégalais. Used for badges, ratings, highlights. */
+    warning: "#F5C518",
+    /** Same as primary for consistency. */
+    success: "#00853F",
 
-    tabBar: "#ffffff",
-    separator: "#eeeeee",
+    // ── Borders / inputs ──────────────────────────────────────────────────
+    border: "#E8D9C3",
+    input: "#E8D9C3",
+
+    // ── Tab bar & separators ──────────────────────────────────────────────
+    tabBar: "#FFFFFF",
+    separator: "#F0E4CF",
   },
   radius: 10,
 };

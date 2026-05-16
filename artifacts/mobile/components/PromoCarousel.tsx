@@ -38,19 +38,19 @@ interface PromoSlide {
 const PROMO_SLIDES: PromoSlide[] = [
   {
     id: "p1",
-    tag: { label: "SALE", color: "#1a1a1a" },
-    title: "Summer edit",
-    subtitle: "Up to 70% off selected pieces",
+    tag: { label: "SOLDES", color: "#C84B1C" },
+    title: "Bonnes affaires",
+    subtitle: "Jusqu'à -70% sur une sélection d'articles",
     image:
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80",
-    cta: "Shop the edit",
+    cta: "Voir les offres",
     overlay: ["rgba(0,0,0,0.05)", "rgba(0,0,0,0.55)"],
   },
   {
     id: "p2",
-    tag: { label: "EDITORS' PICK", color: "#09B1BA" },
-    title: "Curated for you",
-    subtitle: "Featured listings from trusted sellers",
+    tag: { label: "COUP DE CŒUR", color: "#00853F" },
+    title: "Sélection du moment",
+    subtitle: "Articles mis en avant par notre équipe",
     image:
       "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=900&q=80",
     cta: "Discover",
@@ -58,12 +58,12 @@ const PROMO_SLIDES: PromoSlide[] = [
   },
   {
     id: "p3",
-    tag: { label: "NEW IN", color: "#6c5ce7" },
-    title: "Fresh arrivals",
-    subtitle: "Added in the last 24 hours",
+    tag: { label: "NOUVEAUTÉS", color: "#F5C518" },
+    title: "Dernières arrivées",
+    subtitle: "Ajoutées dans les dernières 24 heures",
     image:
       "https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=900&q=80",
-    cta: "Browse new in",
+    cta: "Découvrir",
     overlay: ["rgba(0,0,0,0.05)", "rgba(0,0,0,0.55)"],
   },
 ];

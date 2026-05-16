@@ -31,7 +31,7 @@ const PLACEHOLDER_IMAGE =
 // All conversations show "Diayko" as the contact to preserve seller anonymity.
 const PLATFORM_NAME = "Diayko";
 const PLATFORM_AVATAR = "D";
-const PLATFORM_AVATAR_COLOR = "#09B1BA";
+const PLATFORM_AVATAR_COLOR = "#00853F";
 
 export default function InboxScreen() {
   const colors = useColors();

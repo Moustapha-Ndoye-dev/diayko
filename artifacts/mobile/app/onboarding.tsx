@@ -21,7 +21,7 @@ import { INTERESTS } from "@/data/interests";
 import { DiaykoLogo } from "@/components/DiaykoLogo";
 
 const { width, height } = Dimensions.get("window");
-const BRAND = "#09B1BA";
+const BRAND = "#00853F";
 
 interface Slide {
   id: string;
@@ -34,30 +34,30 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     id: "discover",
-    accentColor: "#09B1BA",
+    accentColor: "#00853F",
     image:
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80",
-    title: "Discover unique fashion",
+    title: "La mode d'occasion au Sénégal",
     subtitle:
-      "Browse thousands of pre-loved pieces from sellers near you. Find styles you love at a fraction of the price.",
+      "Des milliers d'articles de seconde main près de chez vous. Des styles que vous adorez à petits prix.",
   },
   {
     id: "sell",
-    accentColor: "#6c5ce7",
+    accentColor: "#C84B1C",
     image:
       "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80",
-    title: "List items in minutes",
+    title: "Vendez en quelques minutes",
     subtitle:
-      "Snap a photo, set your price, post. Reach thousands of buyers and turn your closet into cash.",
+      "Prenez une photo, fixez votre prix, publiez. Rejoignez des milliers d'acheteurs et transformez vos vêtements en argent.",
   },
   {
     id: "trust",
-    accentColor: "#00b894",
+    accentColor: "#F5C518",
     image:
       "https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=900&q=80",
-    title: "Safe & secure payments",
+    title: "Paiements sécurisés",
     subtitle:
-      "Every transaction is protected. Pay safely, ship with confidence, get buyer protection on every order.",
+      "Chaque transaction est protégée. Payez en toute sécurité et bénéficiez de la protection acheteur sur chaque commande.",
   },
 ];
 
