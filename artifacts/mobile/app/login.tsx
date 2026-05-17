@@ -5,12 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   Platform,
-  Image,
-  ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
@@ -22,11 +18,6 @@ import Svg, {
 } from "react-native-svg";
 import { useAuth } from "@/lib/auth";
 
-const FEATURE_BAG = require("../assets/images/feature_bag.png");
-const FEATURE_SECURE = require("../assets/images/feature_secure.png");
-const FEATURE_FAST = require("../assets/images/feature_fast.png");
-
-const { height } = Dimensions.get("window");
 const GREEN = "#00853F";
 const DARK_GREEN = "#004D22";
 const GOLD = "#F5C518";
@@ -36,22 +27,21 @@ function DiaykoIcon({ size }: { size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100">
       <Defs>
-        <SvgGradient id="lg-bg" x1="0" y1="0" x2="1" y2="1">
+        <SvgGradient id="lg-bg2" x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor="#004D22" />
           <Stop offset="0.6" stopColor="#00853F" />
           <Stop offset="1" stopColor="#1AA058" />
         </SvgGradient>
-        <SvgGradient id="lg-d" x1="0" y1="0" x2="0.8" y2="1">
+        <SvgGradient id="lg-d2" x1="0" y1="0" x2="0.8" y2="1">
           <Stop offset="0" stopColor="#FFD84D" />
           <Stop offset="1" stopColor="#F5C518" />
         </SvgGradient>
       </Defs>
-      <Rect width="100" height="100" rx="22" ry="22" fill="url(#lg-bg)" />
+      <Rect width="100" height="100" rx="22" ry="22" fill="url(#lg-bg2)" />
       <Circle cx="85" cy="18" r="26" fill="none" stroke="rgba(245,197,24,0.15)" strokeWidth="2" />
-      <Circle cx="85" cy="18" r="16" fill="none" stroke="rgba(245,197,24,0.10)" strokeWidth="1.5" />
       <Path
         d="M 28 22 L 28 78 L 44 78 C 66 78 78 66 78 50 C 78 34 66 22 44 22 Z M 36 30 L 43 30 C 60 30 69 39 69 50 C 69 61 60 70 43 70 L 36 70 Z"
-        fill="url(#lg-d)"
+        fill="url(#lg-d2)"
       />
       <Rect x="68" y="14" width="20" height="28" rx="4" ry="4" fill={TERRACOTTA} />
       <Rect x="68" y="14" width="20" height="12" rx="4" ry="4" fill="#D96030" />
@@ -69,8 +59,8 @@ export default function LoginScreen() {
   const [pending, setPending] = React.useState(false);
   const insets = useSafeAreaInsets();
 
-  const topPad = Platform.OS === "web" ? 48 : insets.top + 28;
-  const bottomPad = Platform.OS === "web" ? 28 : insets.bottom + 20;
+  const topPad = Platform.OS === "web" ? 80 : insets.top + 60;
+  const bottomPad = Platform.OS === "web" ? 32 : insets.bottom + 24;
 
   async function handleAuth() {
     setPending(true);
@@ -83,120 +73,69 @@ export default function LoginScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <LinearGradient
-          colors={[DARK_GREEN, GREEN, "#0A9B50"]}
-          style={StyleSheet.absoluteFill}
-        />
-        <ActivityIndicator size="large" color="#fff" />
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={GREEN} />
       </View>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={[DARK_GREEN, "#006B32", GREEN]}
-        locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={[styles.root, { paddingTop: topPad, paddingBottom: bottomPad }]}>
 
-      {/* Decorative circles */}
-      <View style={[styles.decCircle, styles.decCircle1]} />
-      <View style={[styles.decCircle, styles.decCircle2]} />
-      <View style={[styles.decCircle, styles.decCircle3]} />
-
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        {/* Top area — logo + wordmark */}
-        <View style={[styles.top, { paddingTop: topPad }]}>
-          <View style={styles.iconShadowWrap}>
-            <DiaykoIcon size={88} />
-          </View>
-          <Text style={styles.wordmark}>diayko</Text>
-          <Text style={styles.tagline}>
-            La marketplace de la mode{"\n"}de seconde main au Sénégal
-          </Text>
+      {/* Identity */}
+      <View style={styles.identity}>
+        <View style={styles.logoWrap}>
+          <DiaykoIcon size={80} />
         </View>
+        <Text style={styles.wordmark}>diayko</Text>
+        <Text style={styles.tagline}>
+          La mode de seconde main{"\n"}au Sénégal
+        </Text>
+      </View>
 
-        {/* Bottom card */}
-        <View style={[styles.card, { paddingBottom: bottomPad }]}>
-          {/* Gold accent bar */}
-          <View style={styles.goldBar} />
+      {/* Gold divider */}
+      <View style={styles.divider} />
 
-          <Text style={styles.cardTitle}>Rejoignez la communauté</Text>
-          <Text style={styles.cardSubtitle}>
-            Achetez et vendez en toute confiance, partout au Sénégal.
+      {/* Actions */}
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.btn, pending && styles.btnDisabled]}
+          onPress={handleAuth}
+          disabled={pending}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="S'inscrire gratuitement"
+          accessibilityState={{ disabled: pending, busy: pending }}
+        >
+          {pending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>Commencer</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleAuth}
+          disabled={pending}
+          activeOpacity={0.6}
+          style={styles.loginLink}
+          accessibilityRole="button"
+          accessibilityLabel="Se connecter"
+          hitSlop={{ top: 12, bottom: 12, left: 24, right: 24 }}
+        >
+          <Text style={styles.loginLinkText}>
+            Déjà un compte ?{" "}
+            <Text style={styles.loginLinkBold}>Se connecter</Text>
           </Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Features — horizontal cards */}
-          <View style={styles.features}>
-            {[
-              { src: FEATURE_BAG, label: "Milliers\nd'articles" },
-              { src: FEATURE_SECURE, label: "Paiements\nsécurisés" },
-              { src: FEATURE_FAST, label: "Vendez en\n2 minutes" },
-            ].map((f) => (
-              <View key={f.label} style={styles.featureCard}>
-                <Image
-                  source={f.src}
-                  style={styles.featureImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.featureLabel}>{f.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* CTA */}
-          <TouchableOpacity
-            style={[styles.btn, pending && styles.btnDisabled]}
-            onPress={handleAuth}
-            disabled={pending}
-            activeOpacity={0.88}
-            accessibilityRole="button"
-            accessibilityLabel="S'inscrire gratuitement"
-            accessibilityState={{ disabled: pending, busy: pending }}
-          >
-            <LinearGradient
-              colors={[GREEN, "#007A38", DARK_GREEN]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.btnGradient}
-            >
-              {pending ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.btnText}>S'inscrire gratuitement</Text>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.loginLinkWrap}
-            onPress={handleAuth}
-            disabled={pending}
-            activeOpacity={0.6}
-            accessibilityRole="button"
-            accessibilityLabel="Se connecter à un compte existant"
-            accessibilityState={{ disabled: pending }}
-            hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
-          >
-            <Text style={styles.loginLinkText}>
-              Déjà un compte ?{" "}
-              <Text style={styles.loginLinkStrong}>Se connecter</Text>
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={styles.legal}>
-            En continuant, vous acceptez nos{" "}
-            <Text style={styles.legalLink}>Conditions d'utilisation</Text> et notre{" "}
-            <Text style={styles.legalLink}>Politique de confidentialité</Text>.
-          </Text>
-        </View>
-      </ScrollView>
+      {/* Legal */}
+      <Text style={styles.legal}>
+        En continuant, vous acceptez nos{" "}
+        <Text style={styles.legalLink}>Conditions</Text> et notre{" "}
+        <Text style={styles.legalLink}>Politique de confidentialité</Text>.
+      </Text>
     </View>
   );
 }
@@ -204,252 +143,101 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: DARK_GREEN,
+    backgroundColor: "#fff",
+    paddingHorizontal: 28,
+    justifyContent: "space-between",
   },
-  scroll: {
-    flexGrow: 1,
-    minHeight: height,
-  },
-  loadingContainer: {
+  loading: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#fff",
   },
 
-  // Decorative background circles
-  decCircle: {
-    position: "absolute",
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.07)",
-  },
-  decCircle1: {
-    width: 340,
-    height: 340,
-    top: -80,
-    right: -80,
-    backgroundColor: "rgba(255,255,255,0.03)",
-  },
-  decCircle2: {
-    width: 200,
-    height: 200,
-    top: 60,
-    left: -60,
-    borderColor: "rgba(245,197,24,0.10)",
-  },
-  decCircle3: {
-    width: 160,
-    height: 160,
-    bottom: height * 0.45,
-    right: -40,
-    borderColor: "rgba(245,197,24,0.08)",
-  },
-
-  // Top hero area
-  top: {
+  // Identity block
+  identity: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-    paddingBottom: 28,
-    gap: 4,
+    gap: 12,
   },
-  countryBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(245,197,24,0.30)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: 18,
-  },
-  flagDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: GOLD,
-  },
-  countryText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-    color: "#fff",
-    letterSpacing: 0.3,
-  },
-  iconShadowWrap: {
+  logoWrap: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 16,
-    marginBottom: 14,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 10,
+    marginBottom: 4,
   },
   wordmark: {
     fontFamily: "Inter_700Bold",
-    fontSize: 38,
-    color: "#fff",
-    letterSpacing: -1,
-    marginBottom: 8,
+    fontSize: 40,
+    letterSpacing: -1.5,
+    color: "#0a0a0a",
   },
   tagline: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: "rgba(255,255,255,0.75)",
+    fontSize: 16,
+    color: "#888",
     textAlign: "center",
-    lineHeight: 21,
+    lineHeight: 24,
   },
 
-  // Bottom white card
-  card: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  goldBar: {
-    width: 44,
-    height: 4,
-    backgroundColor: GOLD,
+  // Gold divider
+  divider: {
+    height: 3,
+    width: 40,
     borderRadius: 2,
+    backgroundColor: GOLD,
     alignSelf: "center",
-    marginBottom: 18,
-  },
-  cardTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 22,
-    color: "#111",
-    marginBottom: 6,
-    textAlign: "center",
-  },
-  cardSubtitle: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 21,
-    marginBottom: 20,
   },
 
-  // Feature cards — horizontal
-  features: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 16,
+  // Actions block
+  actions: {
+    gap: 4,
   },
-  featureCard: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 6,
-    backgroundColor: "#F7F8F7",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#EEF0EE",
-  },
-  featureImage: {
-    width: 44,
-    height: 44,
-    marginBottom: 8,
-  },
-  featureLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-    color: "#333",
-    textAlign: "center",
-    lineHeight: 16,
-  },
-
-  // Trust strip
-  trustStrip: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    backgroundColor: "rgba(0,133,63,0.06)",
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
-  trustItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  trustNumber: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 15,
-    color: GREEN,
-    marginBottom: 2,
-  },
-  trustLabel: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 12,
-    color: "#555",
-  },
-  trustDivider: {
-    width: 1,
-    height: 26,
-    backgroundColor: "rgba(0,133,63,0.15)",
-  },
-
-  // CTA button
   btn: {
-    borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 12,
+    backgroundColor: GREEN,
+    borderRadius: 14,
+    paddingVertical: 17,
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: GREEN,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   },
   btnDisabled: {
-    opacity: 0.65,
-  },
-  btnGradient: {
-    paddingVertical: 17,
-    alignItems: "center",
-    justifyContent: "center",
+    opacity: 0.6,
   },
   btnText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16.5,
+    fontSize: 17,
     color: "#fff",
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
-
-  // Login link + legal
-  loginLinkWrap: {
-    minHeight: 44,
-    paddingVertical: 12,
+  loginLink: {
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 6,
+    paddingVertical: 14,
   },
   loginLinkText: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
-    color: "#888",
+    color: "#999",
   },
-  loginLinkStrong: {
+  loginLinkBold: {
     fontFamily: "Inter_600SemiBold",
     color: GREEN,
   },
+
+  // Legal
   legal: {
     fontFamily: "Inter_400Regular",
-    fontSize: 12.5,
-    color: "#888",
+    fontSize: 12,
+    color: "#bbb",
     textAlign: "center",
     lineHeight: 18,
   },
   legalLink: {
-    color: GREEN,
-    fontFamily: "Inter_500Medium",
+    color: "#999",
   },
 });
