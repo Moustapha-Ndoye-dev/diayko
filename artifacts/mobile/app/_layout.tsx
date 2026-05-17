@@ -41,7 +41,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       setOnboardingComplete(complete);
       setOnboardingChecked(true);
     });
-  }, []);
+  }, [segments[0]]);
 
   useEffect(() => {
     if (isLoading || !onboardingChecked) return;
