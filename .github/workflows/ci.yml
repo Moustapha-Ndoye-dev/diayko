@@ -47,8 +47,16 @@ jobs:
       - name: Push database schema
         run: pnpm --filter @workspace/db run push-force
 
-      - name: Run tests
-        run: pnpm --filter @workspace/api-server run test
+      - name: Run tests with coverage
+        run: pnpm --filter @workspace/api-server run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: artifacts/api-server/coverage/
+          retention-days: 30
 
   typecheck:
     name: Typecheck
