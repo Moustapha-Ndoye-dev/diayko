@@ -125,13 +125,28 @@ export default function LoginScreen() {
         {/* Features */}
         <View style={styles.features}>
           {([
-            { icon: "shopping-bag", text: "Des milliers d'articles" },
-            { icon: "shield", text: "Paiements sécurisés" },
-            { icon: "zap", text: "Vendez en quelques minutes" },
+            {
+              icon: "shopping-bag",
+              text: "Des milliers d'articles",
+              color: GREEN,
+              bg: "rgba(0,133,63,0.12)",
+            },
+            {
+              icon: "shield",
+              text: "Paiements sécurisés",
+              color: "#B8860B",
+              bg: "rgba(245,197,24,0.18)",
+            },
+            {
+              icon: "zap",
+              text: "Vendez en quelques minutes",
+              color: TERRACOTTA,
+              bg: "rgba(200,75,28,0.12)",
+            },
           ] as const).map((f) => (
             <View key={f.text} style={styles.featureRow}>
-              <View style={styles.featureIconWrap}>
-                <Feather name={f.icon} size={16} color={GREEN} />
+              <View style={[styles.featureIconWrap, { backgroundColor: f.bg }]}>
+                <Feather name={f.icon} size={18} color={f.color} />
               </View>
               <Text style={styles.featureText}>{f.text}</Text>
             </View>
@@ -304,10 +319,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   featureIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0,133,63,0.10)",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
