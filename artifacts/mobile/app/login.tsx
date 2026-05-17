@@ -113,12 +113,6 @@ export default function LoginScreen() {
       >
         {/* Top area — logo + wordmark */}
         <View style={[styles.top, { paddingTop: topPad }]}>
-          {/* Sénégal badge */}
-          <View style={styles.countryBadge}>
-            <View style={styles.flagDot} />
-            <Text style={styles.countryText}>Made in Sénégal</Text>
-          </View>
-
           <View style={styles.iconShadowWrap}>
             <DiaykoIcon size={88} />
           </View>
