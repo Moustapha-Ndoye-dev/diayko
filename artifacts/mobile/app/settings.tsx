@@ -8,6 +8,10 @@ import {
   Switch,
   Platform,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -130,10 +134,13 @@ export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, deleteAccount, user } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -156,6 +163,40 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  };
+
+  const handleDeleteAccountPress = () => {
+    Alert.alert(
+      "Supprimer mon compte",
+      "Cette action est irréversible. Toutes vos données (annonces, messages, favoris) seront définitivement supprimées.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Continuer",
+          style: "destructive",
+          onPress: () => {
+            setConfirmationEmail("");
+            setDeleteModalVisible(true);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleConfirmDelete = async () => {
+    const expectedEmail = user?.email ?? "";
+    if (confirmationEmail.trim().toLowerCase() !== expectedEmail.toLowerCase()) {
+      Alert.alert("Adresse incorrecte", "L'adresse e-mail saisie ne correspond pas à celle de votre compte.");
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      setDeleteModalVisible(false);
+    } catch {
+      setIsDeleting(false);
+      Alert.alert("Erreur", "La suppression du compte a échoué. Veuillez réessayer.");
+    }
   };
 
   const styles = StyleSheet.create({
@@ -372,10 +413,152 @@ export default function SettingsScreen() {
             showArrow={false}
             onPress={handleLogOut}
           />
+          <SettingsItem
+            icon="trash-2"
+            label="Supprimer mon compte"
+            destructive
+            showArrow={false}
+            onPress={handleDeleteAccountPress}
+          />
         </View>
 
         <Text style={styles.version}>Diayko · Version 1.0.0</Text>
       </ScrollView>
+
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !isDeleting && setDeleteModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View style={deleteStyles.overlay}>
+            <View style={[deleteStyles.sheet, { backgroundColor: colors.card }]}>
+              <View style={[deleteStyles.iconWrap, { backgroundColor: `${colors.destructive}14` }]}>
+                <Feather name="trash-2" size={24} color={colors.destructive} />
+              </View>
+
+              <Text style={[deleteStyles.title, { color: colors.foreground }]}>
+                Supprimer mon compte
+              </Text>
+              <Text style={[deleteStyles.body, { color: colors.mutedForeground }]}>
+                Pour confirmer la suppression définitive de votre compte et de toutes vos données, saisissez votre adresse e-mail.
+              </Text>
+
+              <TextInput
+                style={[
+                  deleteStyles.input,
+                  {
+                    borderColor: colors.border,
+                    color: colors.foreground,
+                    backgroundColor: colors.background,
+                  },
+                ]}
+                placeholder="Votre adresse e-mail"
+                placeholderTextColor={colors.mutedForeground}
+                value={confirmationEmail}
+                onChangeText={setConfirmationEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                editable={!isDeleting}
+              />
+
+              <TouchableOpacity
+                style={[
+                  deleteStyles.btn,
+                  deleteStyles.btnDestructive,
+                  { backgroundColor: colors.destructive, opacity: isDeleting ? 0.6 : 1 },
+                ]}
+                onPress={handleConfirmDelete}
+                disabled={isDeleting}
+                accessibilityRole="button"
+                accessibilityLabel="Confirmer la suppression du compte"
+              >
+                {isDeleting ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={deleteStyles.btnText}>Supprimer définitivement</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[deleteStyles.btn, { backgroundColor: colors.secondary }]}
+                onPress={() => setDeleteModalVisible(false)}
+                disabled={isDeleting}
+                accessibilityRole="button"
+                accessibilityLabel="Annuler la suppression"
+              >
+                <Text style={[deleteStyles.btnText, { color: colors.foreground }]}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
+
+const deleteStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  sheet: {
+    width: "100%",
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    gap: 12,
+  },
+  iconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  body: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
+  },
+  btn: {
+    width: "100%",
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+  btnDestructive: {},
+  btnText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+  },
+});

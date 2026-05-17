@@ -24,6 +24,7 @@ interface AuthContextValue {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextValue>({
   login: async () => {},
   logout: async () => {},
   refreshUser: async () => {},
+  deleteAccount: async () => {},
 });
 
 function getApiBaseUrl(): string {
@@ -163,6 +165,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchUser();
   }, [fetchUser]);
 
+  const deleteAccount = useCallback(async () => {
+    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+    if (!token) throw new Error("Not authenticated");
+    const apiBase = getApiBaseUrl();
+    const res = await fetch(`${apiBase}/api/users/me`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok && res.status !== 204) {
+      throw new Error("Account deletion failed");
+    }
+    await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+    setUser(null);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -172,6 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         refreshUser,
+        deleteAccount,
       }}
     >
       {children}

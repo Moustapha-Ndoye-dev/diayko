@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { usersTable, itemsTable, itemImagesTable } from "@workspace/db/schema";
+import { usersTable, itemsTable, itemImagesTable, sessionsTable } from "@workspace/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
@@ -155,6 +155,22 @@ router.get(
 
     const items = rows.map((i) => ({ ...i, images: byItem[i.id] ?? [] }));
     res.json({ items, total, page, limit, hasMore: page * limit < total });
+  }),
+);
+
+router.delete(
+  "/users/me",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+
+    await db
+      .delete(sessionsTable)
+      .where(sql`${sessionsTable.sess}->>'user' IS NOT NULL AND ${sessionsTable.sess}->'user'->>'id' = ${userId}`);
+
+    await db.delete(usersTable).where(eq(usersTable.id, userId));
+
+    res.status(204).send();
   }),
 );
 
