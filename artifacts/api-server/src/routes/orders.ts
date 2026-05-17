@@ -37,10 +37,7 @@ router.get(
   "/orders",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { status, role } = listQuery.parse(req.query);
 
     const roleFilter =
@@ -93,10 +90,7 @@ router.get(
   "/orders/:id",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { id } = idParams.parse(req.params);
     const rows = await db
       .select({
@@ -149,11 +143,8 @@ router.post(
   orderCreateRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
     const data = createBody.parse(req.body);
-    const buyerId = req.user.id;
+    const buyerId = req.user!.id;
 
     const itemRows = await db
       .select()
@@ -209,10 +200,7 @@ router.patch(
   "/orders/:id/status",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { id } = idParams.parse(req.params);
     const { status } = updateStatusBody.parse(req.body);
 

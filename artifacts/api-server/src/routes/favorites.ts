@@ -3,17 +3,15 @@ import { db } from "@workspace/db";
 import { likesTable, itemsTable, itemImagesTable } from "@workspace/db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
 import { asyncHandler } from "../lib/asyncHandler";
-import { HttpError } from "../middlewares/errorHandler";
+import { requireAuth } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 
 router.get(
   "/me/favorites",
+  requireAuth,
   asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) {
-      throw new HttpError(401, "Authentication required");
-    }
-    const id = req.user.id;
+    const id = req.user!.id;
 
     const rows = await db
       .select({ item: itemsTable })
