@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# OAuth token cannot push workflow files; add via GitHub UI
+.github/workflows/
