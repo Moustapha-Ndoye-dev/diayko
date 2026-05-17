@@ -278,6 +278,7 @@ export default function OnboardingScreen() {
           offset: width * index,
           index,
         })}
+        style={{ flex: 1 }}
       />
 
       <View style={[styles.footer, { paddingBottom: bottomPad }]}>
