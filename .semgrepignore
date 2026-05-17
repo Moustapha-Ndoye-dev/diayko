@@ -1,0 +1,7 @@
+# Build and dev tooling — path traversal rules are false positives here.
+# These files never receive user input and are not deployed as server code.
+artifacts/mobile/scripts/
+artifacts/mobile/server/serve.js
+
+# Dev-only mockup sandbox, never deployed to production.
+artifacts/mockup-sandbox/
