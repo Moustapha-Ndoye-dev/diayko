@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   // footer (shared)
   footer: {
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: 32,
     gap: 18,
   },
   dots: {
