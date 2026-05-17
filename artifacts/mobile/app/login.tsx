@@ -82,55 +82,58 @@ export default function LoginScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad, paddingBottom: bottomPad }]}>
 
-      {/* Identity */}
-      <View style={styles.identity}>
-        <View style={styles.logoWrap}>
-          <DiaykoIcon size={80} />
-        </View>
-        <Text style={styles.wordmark}>diayko</Text>
-        <Text style={styles.tagline}>
-          La mode de seconde main{"\n"}au Sénégal
-        </Text>
-      </View>
-
-      {/* Gold divider */}
-      <View style={styles.divider} />
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.btn, pending && styles.btnDisabled]}
-          onPress={handleAuth}
-          disabled={pending}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel="S'inscrire gratuitement"
-          accessibilityState={{ disabled: pending, busy: pending }}
-        >
-          {pending ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>Commencer</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleAuth}
-          disabled={pending}
-          activeOpacity={0.6}
-          style={styles.loginLink}
-          accessibilityRole="button"
-          accessibilityLabel="Se connecter"
-          hitSlop={{ top: 12, bottom: 12, left: 24, right: 24 }}
-        >
-          <Text style={styles.loginLinkText}>
-            Déjà un compte ?{" "}
-            <Text style={styles.loginLinkBold}>Se connecter</Text>
+      {/* Centre — tout le contenu principal groupé */}
+      <View style={styles.center}>
+        {/* Identity */}
+        <View style={styles.identity}>
+          <View style={styles.logoWrap}>
+            <DiaykoIcon size={80} />
+          </View>
+          <Text style={styles.wordmark}>diayko</Text>
+          <Text style={styles.tagline}>
+            La mode de seconde main{"\n"}au Sénégal
           </Text>
-        </TouchableOpacity>
+        </View>
+
+        {/* Gold divider */}
+        <View style={styles.divider} />
+
+        {/* Actions */}
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.btn, pending && styles.btnDisabled]}
+            onPress={handleAuth}
+            disabled={pending}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Commencer"
+            accessibilityState={{ disabled: pending, busy: pending }}
+          >
+            {pending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>Commencer</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleAuth}
+            disabled={pending}
+            activeOpacity={0.6}
+            style={styles.loginLink}
+            accessibilityRole="button"
+            accessibilityLabel="Se connecter"
+            hitSlop={{ top: 12, bottom: 12, left: 24, right: 24 }}
+          >
+            <Text style={styles.loginLinkText}>
+              Déjà un compte ?{" "}
+              <Text style={styles.loginLinkBold}>Se connecter</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Legal */}
+      {/* Legal — ancré en bas */}
       <Text style={styles.legal}>
         En continuant, vous acceptez nos{" "}
         <Text style={styles.legalLink}>Conditions</Text> et notre{" "}
@@ -146,6 +149,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 28,
     justifyContent: "space-between",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 32,
+    paddingBottom: 24,
   },
   loading: {
     flex: 1,
