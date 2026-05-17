@@ -11,7 +11,8 @@ function makeTestApp(limit: number) {
   app.use(pinoHttp({ logger }));
   const limiter = makeRateLimit("test", {
     windowMs: 60 * 1000,
-    limit,
+    authenticatedLimit: limit,
+    anonymousLimit: limit,
     message: "Rate limit exceeded",
   });
   app.get("/test", limiter, (_req, res) => {
