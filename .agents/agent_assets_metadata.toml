@@ -78,3 +78,9 @@ id = "P_YWN51fDTc_dInfRVDej"
 uri = "file://artifacts/mobile/assets/images/feature_fast.png"
 type = "image"
 title = "fast lightning icon"
+
+[[generated]]
+id = "W1bY6FDZG7EZRCH8cFDc3"
+uri = "file://artifacts/mobile/assets/images/login_hero.png"
+type = "image"
+title = "senegalese fashion hero"
