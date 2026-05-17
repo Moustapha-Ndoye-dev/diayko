@@ -7,6 +7,7 @@
  */
 
 export interface SendMessageBody {
+  senderId: string;
   /** @minLength 1 */
   text: string;
 }

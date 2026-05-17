@@ -85,6 +85,7 @@ async function seed() {
         followingCount: 21,
       },
       {
+        id: "seed-aminata",
         name: "Aminata Sow",
         bio: "Créatrice de mode, pièces uniques.",
         rating: "4.9",
@@ -95,6 +96,7 @@ async function seed() {
         verified: true,
       },
       {
+        id: "seed-omar",
         name: "Omar Diallo",
         bio: "Sneakers et streetwear — authentiques garantis.",
         rating: "4.8",
@@ -105,6 +107,7 @@ async function seed() {
         verified: true,
       },
       {
+        id: "seed-fatou",
         name: "Fatou Mbaye",
         bio: "Mode enfant et maternité, bonne humeur garantie.",
         rating: "4.7",
@@ -114,6 +117,7 @@ async function seed() {
         followingCount: 60,
       },
       {
+        id: "seed-ibra",
         name: "Ibrahima Cissé",
         bio: "Sport et outdoor — matériel pro d'occasion.",
         rating: "4.9",
@@ -123,6 +127,7 @@ async function seed() {
         followingCount: 44,
       },
       {
+        id: "seed-ndeye",
         name: "Ndéye Thiam",
         bio: "Bijoux et accessoires artisanaux du Sénégal.",
         rating: "5.0",

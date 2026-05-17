@@ -13,9 +13,6 @@ import request from "supertest";
 import { logger } from "../src/lib/logger";
 import { authMiddleware, requireAuth } from "../src/middlewares/authMiddleware";
 import { makeRateLimit } from "../src/middlewares/rateLimiter";
-import { db } from "@workspace/db";
-import { itemsTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
 import { resetDb, makeUser, makeItem, makeSession, bearer } from "./helpers/db";
 
 function buildProtectedApp(limit: number) {

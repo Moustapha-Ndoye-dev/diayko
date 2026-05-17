@@ -7,6 +7,7 @@
  */
 
 export interface CreateConversationBody {
+  buyerId: string;
   sellerId: string;
   itemId?: string | null;
   initialMessage?: string;
