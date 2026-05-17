@@ -150,24 +150,6 @@ export default function LoginScreen() {
             ))}
           </View>
 
-          {/* Trust strip */}
-          <View style={styles.trustStrip}>
-            <View style={styles.trustItem}>
-              <Text style={styles.trustNumber}>10K+</Text>
-              <Text style={styles.trustLabel}>Articles</Text>
-            </View>
-            <View style={styles.trustDivider} />
-            <View style={styles.trustItem}>
-              <Text style={styles.trustNumber}>4.8★</Text>
-              <Text style={styles.trustLabel}>Note moyenne</Text>
-            </View>
-            <View style={styles.trustDivider} />
-            <View style={styles.trustItem}>
-              <Text style={styles.trustNumber}>FCFA</Text>
-              <Text style={styles.trustLabel}>Monnaie locale</Text>
-            </View>
-          </View>
-
           {/* CTA */}
           <TouchableOpacity
             style={[styles.btn, pending && styles.btnDisabled]}
