@@ -19,8 +19,9 @@ import Svg, {
   Circle,
 } from "react-native-svg";
 import { useAuth } from "@/lib/auth";
+import { storage } from "@/lib/storage";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 const GREEN = "#00853F";
 const DARK_GREEN = "#004D22";
 const GOLD = "#F5C518";
@@ -59,23 +60,39 @@ function DiaykoIcon({ size }: { size: number }) {
 }
 
 export default function LoginScreen() {
-  const { login, isLoading } = useAuth();
-  const [pending, setPending] = React.useState(false);
+  const { login, signup, isLoading } = useAuth();
+  const [pending, setPending] = React.useState<"login" | "signup" | null>(null);
+  const [isFirstTime, setIsFirstTime] = React.useState<boolean | null>(null);
   const insets = useSafeAreaInsets();
 
   const topPad = Platform.OS === "web" ? 60 : insets.top + 40;
   const bottomPad = Platform.OS === "web" ? 32 : insets.bottom + 24;
 
-  async function handleLogin() {
-    setPending(true);
+  React.useEffect(() => {
+    storage.firstVisit.isFirstTime().then(setIsFirstTime);
+  }, []);
+
+  async function handleSignup() {
+    setPending("signup");
     try {
-      await login();
+      await storage.firstVisit.markDone();
+      await signup();
     } finally {
-      setPending(false);
+      setPending(null);
     }
   }
 
-  if (isLoading) {
+  async function handleLogin() {
+    setPending("login");
+    try {
+      await storage.firstVisit.markDone();
+      await login();
+    } finally {
+      setPending(null);
+    }
+  }
+
+  if (isLoading || isFirstTime === null) {
     return (
       <View style={styles.loadingContainer}>
         <LinearGradient
@@ -100,7 +117,7 @@ export default function LoginScreen() {
       <View style={[styles.decCircle, styles.decCircle2]} />
       <View style={[styles.decCircle, styles.decCircle3]} />
 
-      {/* Top area — logo + wordmark */}
+      {/* Top area */}
       <View style={[styles.top, { paddingTop: topPad }]}>
         <View style={styles.iconShadowWrap}>
           <DiaykoIcon size={96} />
@@ -113,48 +130,108 @@ export default function LoginScreen() {
 
       {/* Bottom card */}
       <View style={[styles.card, { paddingBottom: bottomPad }]}>
-        {/* Gold accent bar */}
         <View style={styles.goldBar} />
 
-        <Text style={styles.cardTitle}>Rejoignez la communauté</Text>
-        <Text style={styles.cardSubtitle}>
-          Achetez, vendez et découvrez des vêtements de qualité à petits prix.
-        </Text>
+        {isFirstTime ? (
+          /* ── PREMIÈRE VISITE : un seul bouton S'inscrire ── */
+          <>
+            <Text style={styles.cardTitle}>Bienvenue sur Diayko</Text>
+            <Text style={styles.cardSubtitle}>
+              Créez votre compte gratuit et rejoignez des milliers
+              d'acheteurs et vendeurs au Sénégal.
+            </Text>
 
-        {/* Features */}
-        <View style={styles.features}>
-          {[
-            { icon: "🛍️", text: "Des milliers d'articles" },
-            { icon: "🔒", text: "Paiements sécurisés" },
-            { icon: "🚀", text: "Vendez en quelques minutes" },
-          ].map((f) => (
-            <View key={f.text} style={styles.featureRow}>
-              <Text style={styles.featureIcon}>{f.icon}</Text>
-              <Text style={styles.featureText}>{f.text}</Text>
+            <View style={styles.features}>
+              {[
+                { icon: "🛍️", text: "Des milliers d'articles" },
+                { icon: "🔒", text: "Paiements sécurisés" },
+                { icon: "🚀", text: "Vendez en quelques minutes" },
+              ].map((f) => (
+                <View key={f.text} style={styles.featureRow}>
+                  <Text style={styles.featureIcon}>{f.icon}</Text>
+                  <Text style={styles.featureText}>{f.text}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
 
-        {/* CTA */}
-        <TouchableOpacity
-          style={[styles.btn, pending && styles.btnDisabled]}
-          onPress={handleLogin}
-          disabled={pending}
-          activeOpacity={0.88}
-        >
-          <LinearGradient
-            colors={[GREEN, "#007A38", DARK_GREEN]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.btnGradient}
-          >
-            {pending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>Se connecter · S'inscrire</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btnPrimary, pending && styles.btnDisabled]}
+              onPress={handleSignup}
+              disabled={!!pending}
+              activeOpacity={0.88}
+            >
+              <LinearGradient
+                colors={[GREEN, "#007A38", DARK_GREEN]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.btnGradient}
+              >
+                {pending === "signup" ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnPrimaryText}>Créer mon compte</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.btnTextLink}
+              onPress={handleLogin}
+              disabled={!!pending}
+              activeOpacity={0.7}
+            >
+              {pending === "login" ? (
+                <ActivityIndicator color={GREEN} size="small" />
+              ) : (
+                <Text style={styles.btnTextLinkLabel}>
+                  Déjà un compte ?{" "}
+                  <Text style={styles.btnTextLinkStrong}>Se connecter</Text>
+                </Text>
+              )}
+            </TouchableOpacity>
+          </>
+        ) : (
+          /* ── RETOUR : deux boutons séparés ── */
+          <>
+            <Text style={styles.cardTitle}>Bon retour sur Diayko</Text>
+            <Text style={styles.cardSubtitle}>
+              Connectez-vous pour accéder à vos articles, messages et favoris.
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, pending && styles.btnDisabled]}
+              onPress={handleLogin}
+              disabled={!!pending}
+              activeOpacity={0.88}
+            >
+              <LinearGradient
+                colors={[GREEN, "#007A38", DARK_GREEN]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.btnGradient}
+              >
+                {pending === "login" ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnPrimaryText}>Se connecter</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.btnSecondary, pending && styles.btnDisabled]}
+              onPress={handleSignup}
+              disabled={!!pending}
+              activeOpacity={0.88}
+            >
+              {pending === "signup" ? (
+                <ActivityIndicator color={GREEN} />
+              ) : (
+                <Text style={styles.btnSecondaryText}>Créer un compte</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
 
         <Text style={styles.legal}>
           En continuant, vous acceptez nos{" "}
@@ -167,17 +244,9 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: DARK_GREEN,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  root: { flex: 1, backgroundColor: DARK_GREEN },
+  loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
 
-  // Decorative background circles
   decCircle: {
     position: "absolute",
     borderRadius: 9999,
@@ -206,7 +275,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(245,197,24,0.08)",
   },
 
-  // Top hero area
   top: {
     flex: 1,
     alignItems: "center",
@@ -237,7 +305,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Bottom white card
   card: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 32,
@@ -274,11 +341,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Feature list
-  features: {
-    marginBottom: 24,
-    gap: 10,
-  },
+  features: { marginBottom: 24, gap: 10 },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -288,48 +351,74 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-  featureIcon: {
-    fontSize: 18,
-  },
+  featureIcon: { fontSize: 18 },
   featureText: {
     fontFamily: "Inter_500Medium",
     fontSize: 14,
     color: "#333",
   },
 
-  // CTA button
-  btn: {
+  btnPrimary: {
     borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: GREEN,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
     elevation: 6,
   },
-  btnDisabled: {
-    opacity: 0.65,
-  },
   btnGradient: {
     paddingVertical: 17,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnText: {
+  btnPrimaryText: {
     fontFamily: "Inter_700Bold",
     fontSize: 17,
     color: "#fff",
     letterSpacing: 0.2,
   },
+  btnDisabled: { opacity: 0.65 },
 
-  // Legal text
+  btnSecondary: {
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: GREEN,
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  btnSecondaryText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 17,
+    color: GREEN,
+    letterSpacing: 0.2,
+  },
+
+  btnTextLink: {
+    paddingVertical: 10,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  btnTextLinkLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#888",
+  },
+  btnTextLinkStrong: {
+    fontFamily: "Inter_600SemiBold",
+    color: GREEN,
+  },
+
   legal: {
     fontFamily: "Inter_400Regular",
     fontSize: 11.5,
     color: "#aaa",
     textAlign: "center",
     lineHeight: 17,
+    marginTop: 8,
   },
   legalLink: {
     color: GREEN,

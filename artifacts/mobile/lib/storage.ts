@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const ONBOARDING_KEY = "@diayko/onboarding_complete";
 const INTERESTS_KEY = "@diayko/interests";
 const SELLER_STATUS_KEY = "@diayko/seller_status";
+const FIRST_VISIT_KEY = "@diayko/first_visit_done";
 
 export type SellerStatus = "none" | "pending" | "approved";
 
@@ -51,6 +52,15 @@ export const storage = {
     },
     set: async (status: SellerStatus): Promise<void> => {
       await AsyncStorage.setItem(SELLER_STATUS_KEY, status);
+    },
+  },
+  firstVisit: {
+    isFirstTime: async (): Promise<boolean> => {
+      const value = await AsyncStorage.getItem(FIRST_VISIT_KEY);
+      return value !== "done";
+    },
+    markDone: async (): Promise<void> => {
+      await AsyncStorage.setItem(FIRST_VISIT_KEY, "done");
     },
   },
 };

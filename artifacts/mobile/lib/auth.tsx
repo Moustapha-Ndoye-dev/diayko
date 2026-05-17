@@ -22,6 +22,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => Promise<void>;
+  signup: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
   isAuthenticated: false,
   login: async () => {},
+  signup: async () => {},
   logout: async () => {},
   refreshUser: async () => {},
   deleteAccount: async () => {},
@@ -143,6 +145,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [promptAsync]);
 
+  const signup = useCallback(async () => {
+    try {
+      await promptAsync();
+    } catch {
+      // ignore
+    }
+  }, [promptAsync]);
+
   const logout = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
@@ -187,6 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
+        signup,
         logout,
         refreshUser,
         deleteAccount,
