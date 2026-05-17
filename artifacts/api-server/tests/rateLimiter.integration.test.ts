@@ -26,7 +26,7 @@ function buildProtectedApp(limit: number) {
   app.use(express.json());
   app.use(authMiddleware);
 
-  const limiter = makeRateLimit({
+  const limiter = makeRateLimit("test", {
     windowMs: 60 * 1000,
     limit,
     message: "Rate limit exceeded",
@@ -157,7 +157,7 @@ describe("Rate limiter — wiring on real /api/conversations route", () => {
     app.use(express.json());
     app.use(authMiddleware);
 
-    const lowLimiter = makeRateLimit({ windowMs: 60_000, limit: 2, message: "Trop de conversations" });
+    const lowLimiter = makeRateLimit("test_conv", { windowMs: 60_000, limit: 2, message: "Trop de conversations" });
 
     app.post("/api/conversations", lowLimiter, requireAuth, async (_req, res) => {
       res.status(201).json({ id: "fake-id" });
@@ -215,7 +215,7 @@ describe("Rate limiter — wiring on real /api/orders route", () => {
     app.use(express.json());
     app.use(authMiddleware);
 
-    const lowLimiter = makeRateLimit({ windowMs: 60_000, limit: 2, message: "Trop de commandes" });
+    const lowLimiter = makeRateLimit("test_order", { windowMs: 60_000, limit: 2, message: "Trop de commandes" });
 
     app.post("/api/orders", lowLimiter, requireAuth, async (_req, res) => {
       res.status(201).json({ id: "fake-order-id" });

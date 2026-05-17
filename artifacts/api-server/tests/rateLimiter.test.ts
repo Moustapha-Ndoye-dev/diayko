@@ -9,7 +9,7 @@ function makeTestApp(limit: number) {
   const app = express();
   app.set("trust proxy", 1);
   app.use(pinoHttp({ logger }));
-  const limiter = makeRateLimit({
+  const limiter = makeRateLimit("test", {
     windowMs: 60 * 1000,
     limit,
     message: "Rate limit exceeded",
