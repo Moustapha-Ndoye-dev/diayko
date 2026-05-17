@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { storage } from "@/lib/storage";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,18 +33,31 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+  const [onboardingChecked, setOnboardingChecked] = React.useState(false);
+  const [onboardingComplete, setOnboardingComplete] = React.useState(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    storage.onboarding.isComplete().then((complete) => {
+      setOnboardingComplete(complete);
+      setOnboardingChecked(true);
+    });
+  }, []);
 
-    const inAuthGroup = segments[0] === "login";
+  useEffect(() => {
+    if (isLoading || !onboardingChecked) return;
 
-    if (!isAuthenticated && !inAuthGroup) {
+    const currentRoute = segments[0] as string | undefined;
+    const inAuthGroup = currentRoute === "login";
+    const inOnboarding = currentRoute === "onboarding";
+
+    if (!onboardingComplete && !inOnboarding) {
+      router.replace("/onboarding");
+    } else if (onboardingComplete && !isAuthenticated && !inAuthGroup) {
       router.replace("/login");
-    } else if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && (inAuthGroup || inOnboarding)) {
       router.replace("/(tabs)");
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, isLoading, onboardingChecked, onboardingComplete, segments, router]);
 
   return <>{children}</>;
 }

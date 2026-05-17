@@ -80,7 +80,7 @@ export default function OnboardingScreen() {
         storage.onboarding.setComplete(),
         storage.interests.set(interests),
       ]);
-      router.replace("/(tabs)");
+      router.replace("/login");
     },
     [router]
   );
