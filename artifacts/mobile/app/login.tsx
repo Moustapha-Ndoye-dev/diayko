@@ -154,9 +154,21 @@ export default function LoginScreen() {
             {pending ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.btnText}>Se connecter · S'inscrire</Text>
+              <Text style={styles.btnText}>S'inscrire</Text>
             )}
           </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.loginLinkWrap}
+          onPress={handleLogin}
+          disabled={pending}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.loginLinkText}>
+            Déjà un compte ?{" "}
+            <Text style={styles.loginLinkStrong}>Se connecter</Text>
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.legal}>
@@ -332,6 +344,20 @@ const styles = StyleSheet.create({
   },
 
   // Legal text
+  loginLinkWrap: {
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  loginLinkText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "#888",
+  },
+  loginLinkStrong: {
+    fontFamily: "Inter_600SemiBold",
+    color: GREEN,
+  },
   legal: {
     fontFamily: "Inter_400Regular",
     fontSize: 11.5,
