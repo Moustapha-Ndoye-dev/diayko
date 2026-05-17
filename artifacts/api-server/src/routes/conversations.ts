@@ -113,7 +113,7 @@ router.get(
 const createConversationBody = z.object({
   sellerId: z.string(),
   itemId: z.string().uuid().optional().nullable(),
-  initialMessage: z.string().optional(),
+  initialMessage: z.string().max(2000, "Message cannot exceed 2000 characters").optional(),
 });
 
 router.post(
@@ -121,12 +121,7 @@ router.post(
   conversationCreateRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
-    const parsed = createConversationBody.safeParse(req.body);
-    if (!parsed.success) {
-      throw new HttpError(400, parsed.error.message);
-    }
-
-    const { sellerId, itemId, initialMessage } = parsed.data;
+    const { sellerId, itemId, initialMessage } = createConversationBody.parse(req.body);
     const buyerId = req.user!.id;
 
     if (buyerId === sellerId) {
@@ -221,7 +216,7 @@ router.get(
  * any senderId in the body is ignored. The caller must be a participant.
  */
 const sendMessageBody = z.object({
-  text: z.string().min(1),
+  text: z.string().min(1).max(2000, "Message cannot exceed 2000 characters"),
 });
 
 router.post(
@@ -229,12 +224,7 @@ router.post(
   messageSendRateLimit,
   requireAuth,
   asyncHandler(async (req, res) => {
-    const parsed = sendMessageBody.safeParse(req.body);
-    if (!parsed.success) {
-      throw new HttpError(400, parsed.error.message);
-    }
-
-    const { text } = parsed.data;
+    const { text } = sendMessageBody.parse(req.body);
     const senderId = req.user!.id;
     const conversationId = String(req.params.id);
 

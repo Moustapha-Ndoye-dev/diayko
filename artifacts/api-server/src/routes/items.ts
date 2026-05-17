@@ -112,16 +112,16 @@ router.get(
 );
 
 const createBodySchema = z.object({
-  title: z.string().min(2),
+  title: z.string().min(2).max(200, "Title cannot exceed 200 characters"),
   brand: z.string().min(1),
   price: z.number().positive(),
   originalPrice: z.number().positive().optional().nullable(),
   size: z.string().min(1),
   condition: z.enum(["New with tags", "Like new", "Good", "Fair"]),
   category: z.string().min(1),
-  description: z.string(),
+  description: z.string().max(2000, "Description cannot exceed 2000 characters"),
   color: z.string().optional().nullable(),
-  images: z.array(z.string()).min(1),
+  images: z.array(z.string()).min(1).max(10, "Cannot upload more than 10 images"),
 });
 
 router.post(
