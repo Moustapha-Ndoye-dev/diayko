@@ -1,9 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db } from "@workspace/db";
-import { likesTable, itemsTable, itemImagesTable } from "@workspace/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
+import * as favoritesRepo from "../repos/favorites";
 
 const router: IRouter = Router();
 
@@ -11,35 +9,7 @@ router.get(
   "/me/favorites",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const id = req.user!.id;
-
-    const rows = await db
-      .select({ item: itemsTable })
-      .from(likesTable)
-      .innerJoin(itemsTable, eq(likesTable.itemId, itemsTable.id))
-      .where(eq(likesTable.userId, id))
-      .orderBy(desc(likesTable.createdAt));
-
-    if (rows.length === 0) {
-      res.json({ items: [], ids: [] });
-      return;
-    }
-
-    const ids = rows.map((r) => r.item.id);
-    const imgs = await db
-      .select()
-      .from(itemImagesTable)
-      .where(inArray(itemImagesTable.itemId, ids))
-      .orderBy(itemImagesTable.position);
-
-    const byItem: Record<string, string[]> = {};
-    for (const img of imgs) {
-      if (!byItem[img.itemId]) byItem[img.itemId] = [];
-      byItem[img.itemId]!.push(img.url);
-    }
-
-    const items = rows.map((r) => ({ ...r.item, images: byItem[r.item.id] ?? [] }));
-    res.json({ items, ids });
+    res.json(await favoritesRepo.listForUser(req.user!.id));
   }),
 );
 

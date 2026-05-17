@@ -25,6 +25,22 @@ A second-hand fashion marketplace mobile app (Expo/React Native) backed by a RES
 
 ## Where things live
 
+> **Raccourcis** : `client/` → `artifacts/mobile/` et `server/` → `artifacts/api-server/` (symlinks).
+> Travaille dans `client/` et `server/` au quotidien. Les artifacts/ doivent rester en place pour Replit.
+
+### Server — architecture en 3 couches
+
+```
+server/src/
+├── routes/       ← thin : valider (Zod) → appeler service → répondre
+├── services/     ← logique métier (créer commande, toggle like, vérifier participants…)
+├── repos/        ← TOUTES les requêtes Drizzle (1 fichier par entité)
+├── middlewares/  ← auth, rate-limit, errorHandler
+└── lib/          ← asyncHandler, logger, pgRateLimitStore
+```
+
+**Règle d'or** : `routes/` n'accèdent jamais directement à `db`. Toujours route → service → repo.
+
 - `artifacts/mobile/` — Expo mobile app
   - `app/(tabs)/` — Tab screens (Home, Search, Sell, Inbox, Profile)
   - `app/item/[id].tsx` — Item detail screen
