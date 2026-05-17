@@ -11,6 +11,7 @@ export interface Seller {
   id: string;
   name: string;
   bio?: string;
+  profileImageUrl?: string;
   rating: number;
   reviewCount: number;
   itemCount: number;

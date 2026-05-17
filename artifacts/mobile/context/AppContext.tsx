@@ -18,6 +18,7 @@ export function toSeller(u: ApiUser): Seller {
     id: u.id,
     name: u.name ?? "Vendeur",
     bio: u.bio ?? undefined,
+    profileImageUrl: u.profileImageUrl ?? undefined,
     rating: Number(u.rating),
     reviewCount: u.reviewCount,
     itemCount: u.itemCount,
@@ -90,6 +91,7 @@ function authUserToSeller(user: AuthUser): Seller {
     id: user.id,
     name,
     bio: undefined,
+    profileImageUrl: user.profileImageUrl ?? undefined,
     rating: 0,
     reviewCount: 0,
     itemCount: 0,
@@ -122,6 +124,8 @@ interface AppContextValue {
   isFavorite: (itemId: string) => boolean;
   currentUser: Seller;
   refreshItems: (filters?: ListFilters) => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (fields: { name?: string; bio?: string | null }) => Promise<void>;
   sellerStatus: SellerStatus;
   requestSellerAccess: () => Promise<void>;
   resetSellerStatus: () => Promise<void>;
@@ -137,10 +141,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [myListings, setMyListings] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fullProfile, setFullProfile] = useState<ApiUser | null>(null);
 
   const sellerStatus: SellerStatus = (user?.sellerStatus as SellerStatus) ?? "none";
 
-  const currentUser: Seller = user ? authUserToSeller(user) : PLACEHOLDER_SELLER;
+  // Use real API profile data when available; fall back to auth user data
+  const currentUser: Seller = fullProfile
+    ? toSeller(fullProfile)
+    : user
+    ? authUserToSeller(user)
+    : PLACEHOLDER_SELLER;
 
   // Auto-approve after 6s when status is pending (mirrors the prior simulation, now server-backed).
   useEffect(() => {
@@ -165,6 +175,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await api.sellerAccess.reset();
     await refreshUser();
   }, [refreshUser]);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) {
+      setFullProfile(null);
+      return;
+    }
+    try {
+      const profile = await api.users.get(user.id);
+      setFullProfile(profile);
+    } catch {
+      // Keep fallback auth data on error
+    }
+  }, [user]);
+
+  const updateProfile = useCallback(
+    async (fields: { name?: string; bio?: string | null }) => {
+      if (!user) return;
+      const updated = await api.users.update(user.id, fields);
+      setFullProfile(updated);
+    },
+    [user],
+  );
+
+  // Load full profile whenever the authenticated user changes
+  useEffect(() => {
+    refreshProfile();
+  }, [refreshProfile]);
 
   const refreshItems = useCallback(async (filters?: ListFilters) => {
     try {
@@ -240,6 +277,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isFavorite,
         currentUser,
         refreshItems,
+        refreshProfile,
+        updateProfile,
         sellerStatus,
         requestSellerAccess,
         resetSellerStatus,

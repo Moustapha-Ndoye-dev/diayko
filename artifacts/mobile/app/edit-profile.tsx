@@ -9,6 +9,8 @@ import {
   Platform,
   Alert,
   KeyboardAvoidingView,
+  ActivityIndicator,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -20,21 +22,32 @@ export default function EditProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { currentUser } = useApp();
+  const { currentUser, updateProfile } = useApp();
 
   const [name, setName] = useState(currentUser.name);
   const [bio, setBio] = useState(currentUser.bio ?? "");
-  const [city, setCity] = useState("Dakar");
-  const [phone, setPhone] = useState("+221 77 000 00 00");
+  const [isSaving, setIsSaving] = useState(false);
 
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSave = () => {
-    Alert.alert("Profil mis à jour", "Vos modifications ont été enregistrées avec succès.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+  const handleSave = async () => {
+    if (isSaving) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      Alert.alert("Nom requis", "Veuillez saisir un nom complet.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateProfile({ name: trimmedName, bio: bio.trim() || null });
+      router.back();
+    } catch {
+      Alert.alert("Erreur", "Impossible de mettre à jour le profil. Veuillez réessayer.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const styles = StyleSheet.create({
@@ -48,6 +61,7 @@ export default function EditProfileScreen() {
     title: { flex: 1, fontSize: 17, fontFamily: "Inter_700Bold", color: colors.foreground },
     saveBtn: { paddingHorizontal: 14, paddingVertical: 8 },
     saveBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: colors.primary },
+    saveBtnDisabled: { opacity: 0.5 },
     scroll: { padding: 16, gap: 18 },
     avatarSection: { alignItems: "center", gap: 10, paddingVertical: 8 },
     avatar: {
@@ -66,7 +80,6 @@ export default function EditProfileScreen() {
     },
     textarea: { height: 96, textAlignVertical: "top" },
     counter: { fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "right" },
-    hint: { fontSize: 12, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: -2 },
     footer: { height: bottomPad + 16 },
   });
 
@@ -80,16 +93,34 @@ export default function EditProfileScreen() {
           <Feather name="chevron-left" size={24} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={styles.title}>Modifier le profil</Text>
-        <TouchableOpacity onPress={handleSave} style={styles.saveBtn} accessibilityRole="button" accessibilityLabel="Enregistrer">
-          <Text style={styles.saveBtnText}>Enregistrer</Text>
+        <TouchableOpacity
+          onPress={handleSave}
+          style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
+          disabled={isSaving}
+          accessibilityRole="button"
+          accessibilityLabel="Enregistrer"
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={styles.saveBtnText}>Enregistrer</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials || "?"}</Text>
-          </View>
+          {currentUser.profileImageUrl ? (
+            <Image
+              source={{ uri: currentUser.profileImageUrl }}
+              style={[styles.avatar, { backgroundColor: colors.secondary }]}
+              accessibilityLabel="Photo de profil"
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials || "?"}</Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.avatarBtn}
             onPress={() => Alert.alert("Bientôt disponible", "L'envoi de photo de profil arrivera prochainement.")}
@@ -117,26 +148,6 @@ export default function EditProfileScreen() {
             multiline accessibilityLabel="Bio"
           />
           <Text style={styles.counter}>{bio.length} / 160</Text>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Ville</Text>
-          <TextInput
-            value={city} onChangeText={setCity} style={styles.input}
-            placeholder="Dakar, Thiès, Saint-Louis…" placeholderTextColor={colors.mutedForeground}
-            accessibilityLabel="Ville"
-          />
-          <Text style={styles.hint}>Affichée publiquement sur votre profil.</Text>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            value={phone} onChangeText={setPhone} style={styles.input}
-            placeholder="+221 ..." placeholderTextColor={colors.mutedForeground}
-            keyboardType="phone-pad" accessibilityLabel="Téléphone"
-          />
-          <Text style={styles.hint}>Utilisé pour les notifications de commande. Jamais affiché publiquement.</Text>
         </View>
 
         <View style={styles.footer} />

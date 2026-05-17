@@ -57,6 +57,7 @@ export type ApiUser = {
   id: string;
   name?: string | null;
   bio?: string | null;
+  profileImageUrl?: string | null;
   rating: number;
   reviewCount: number;
   itemCount: number;
@@ -173,6 +174,8 @@ export const api = {
     create: (body: { name: string; bio?: string }) =>
       request<ApiUser>("/users", { method: "POST", body: JSON.stringify(body) }),
     get: (id: string) => request<ApiUser>(`/users/${id}`),
+    update: (id: string, body: { name?: string; bio?: string | null }) =>
+      request<ApiUser>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     items: (id: string, params?: { page?: number; limit?: number }) => {
       const qs = new URLSearchParams();
       if (params?.page) qs.set("page", String(params.page));

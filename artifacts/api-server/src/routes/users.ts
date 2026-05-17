@@ -8,17 +8,24 @@ import { requireAuth } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
 
-const uuidSchema = z.string().uuid();
+const userIdSchema = z.string().min(1);
 
-const updateProfileBody = z.object({
-  bio: z.string().optional().nullable(),
+const postProfileBody = z.object({
+  bio: z.string().max(500).nullable(),
+});
+
+const patchProfileBody = z.object({
+  name: z.string().min(1).max(100).optional(),
+  bio: z.string().max(500).optional().nullable(),
+}).refine((d) => d.name !== undefined || d.bio !== undefined, {
+  message: "At least one of name or bio must be provided",
 });
 
 router.post(
   "/users",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const parsed = updateProfileBody.safeParse(req.body);
+    const parsed = postProfileBody.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: parsed.error.message });
       return;
@@ -37,7 +44,7 @@ router.post(
 router.get(
   "/users/:id",
   asyncHandler(async (req, res) => {
-    if (!uuidSchema.safeParse(req.params.id).success) {
+    if (!userIdSchema.safeParse(req.params.id).success) {
       res.status(404).json({ error: "User not found" });
       return;
     }
@@ -57,10 +64,49 @@ router.get(
   }),
 );
 
+router.patch(
+  "/users/:id",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!userIdSchema.safeParse(req.params.id).success) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    if (req.params.id !== req.user!.id) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const parsed = patchProfileBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const setFields: Record<string, unknown> = { updatedAt: new Date() };
+    if (parsed.data.name !== undefined) setFields.name = parsed.data.name;
+    if (parsed.data.bio !== undefined) setFields.bio = parsed.data.bio ?? null;
+
+    const [user] = await db
+      .update(usersTable)
+      .set(setFields)
+      .where(eq(usersTable.id, req.user!.id))
+      .returning();
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json(user);
+  }),
+);
+
 router.get(
   "/users/:id/items",
   asyncHandler(async (req, res) => {
-    if (!uuidSchema.safeParse(req.params.id).success) {
+    if (!userIdSchema.safeParse(req.params.id).success) {
       res.json({ items: [], total: 0, page: 1, limit: 20, hasMore: false });
       return;
     }

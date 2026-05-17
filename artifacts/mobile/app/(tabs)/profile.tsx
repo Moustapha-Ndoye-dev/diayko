@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -429,9 +430,17 @@ export default function ProfileScreen() {
     <View>
       <View style={styles.profileCard}>
         <View style={styles.avatarRow}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+          {currentUser.profileImageUrl ? (
+            <Image
+              source={{ uri: currentUser.profileImageUrl }}
+              style={[styles.avatar, { backgroundColor: colors.secondary }]}
+              accessibilityLabel="Photo de profil"
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          )}
           <View style={styles.nameBlock}>
             <View style={styles.nameRow}>
               <Text style={styles.name}>{currentUser.name}</Text>
