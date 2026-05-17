@@ -1,4 +1,5 @@
 import type { Store, Options, ClientRateLimitInfo } from "express-rate-limit";
+import { logger } from "./logger";
 
 // Infer the pool type from the workspace db module to avoid a direct
 // dependency on `pg` types in this package.
@@ -93,4 +94,55 @@ export class PgRateLimitStore implements Store {
       [`${this.namespace}:%`],
     );
   }
+}
+
+/**
+ * Delete all rows in `rate_limits` whose window has already expired.
+ * Safe to call at any time; expired rows have no effect on active limiting.
+ * Returns the number of rows deleted.
+ */
+export async function cleanupExpiredRateLimits(): Promise<number> {
+  const pool = await getPool();
+  const result = await pool.query<{ count: string }>(
+    `WITH deleted AS (
+       DELETE FROM rate_limits WHERE reset_time < NOW() RETURNING 1
+     )
+     SELECT COUNT(*)::text AS count FROM deleted`,
+  );
+  return Number(result.rows[0]?.count ?? 0);
+}
+
+/**
+ * Start a background interval that purges expired rate-limit rows.
+ * @param intervalMs How often to run the cleanup (default: 1 hour).
+ * Returns the interval handle so callers can clear it if needed.
+ */
+export function startRateLimitCleanupJob(
+  intervalMs = 60 * 60 * 1000,
+): ReturnType<typeof setInterval> {
+  async function runCleanup(): Promise<void> {
+    try {
+      const deleted = await cleanupExpiredRateLimits();
+      if (deleted > 0) {
+        logger.info({ deleted }, "rate_limits cleanup: expired rows removed");
+      }
+    } catch (err) {
+      logger.error({ err }, "rate_limits cleanup: failed");
+    }
+  }
+
+  // Run once immediately to clear any stale rows left over from before restart.
+  void runCleanup();
+
+  const handle = setInterval(runCleanup, intervalMs);
+
+  // Allow the Node.js process to exit even if this interval is still pending.
+  handle.unref();
+
+  logger.info(
+    { intervalMs },
+    "rate_limits cleanup job scheduled",
+  );
+
+  return handle;
 }
