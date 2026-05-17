@@ -18,6 +18,7 @@ import Svg, {
   Rect,
   Circle,
 } from "react-native-svg";
+import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/lib/auth";
 
 const { width, height } = Dimensions.get("window");
@@ -123,13 +124,15 @@ export default function LoginScreen() {
 
         {/* Features */}
         <View style={styles.features}>
-          {[
-            { icon: "🛍️", text: "Des milliers d'articles" },
-            { icon: "🔒", text: "Paiements sécurisés" },
-            { icon: "🚀", text: "Vendez en quelques minutes" },
-          ].map((f) => (
+          {([
+            { icon: "shopping-bag", text: "Des milliers d'articles" },
+            { icon: "shield", text: "Paiements sécurisés" },
+            { icon: "zap", text: "Vendez en quelques minutes" },
+          ] as const).map((f) => (
             <View key={f.text} style={styles.featureRow}>
-              <Text style={styles.featureIcon}>{f.icon}</Text>
+              <View style={styles.featureIconWrap}>
+                <Feather name={f.icon} size={16} color={GREEN} />
+              </View>
               <Text style={styles.featureText}>{f.text}</Text>
             </View>
           ))}
@@ -288,8 +291,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-  featureIcon: {
-    fontSize: 18,
+  featureIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,133,63,0.10)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   featureText: {
     fontFamily: "Inter_500Medium",
