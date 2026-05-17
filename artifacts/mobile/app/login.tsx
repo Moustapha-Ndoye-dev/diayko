@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Platform,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,8 +19,11 @@ import Svg, {
   Rect,
   Circle,
 } from "react-native-svg";
-import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/lib/auth";
+
+const FEATURE_BAG = require("../assets/images/feature_bag.png");
+const FEATURE_SECURE = require("../assets/images/feature_secure.png");
+const FEATURE_FAST = require("../assets/images/feature_fast.png");
 
 const { width, height } = Dimensions.get("window");
 const GREEN = "#00853F";
@@ -124,30 +128,17 @@ export default function LoginScreen() {
 
         {/* Features */}
         <View style={styles.features}>
-          {([
-            {
-              icon: "shopping-bag",
-              text: "Des milliers d'articles",
-              color: GREEN,
-              bg: "rgba(0,133,63,0.12)",
-            },
-            {
-              icon: "shield",
-              text: "Paiements sécurisés",
-              color: "#B8860B",
-              bg: "rgba(245,197,24,0.18)",
-            },
-            {
-              icon: "zap",
-              text: "Vendez en quelques minutes",
-              color: TERRACOTTA,
-              bg: "rgba(200,75,28,0.12)",
-            },
-          ] as const).map((f) => (
+          {[
+            { src: FEATURE_BAG, text: "Des milliers d'articles" },
+            { src: FEATURE_SECURE, text: "Paiements sécurisés" },
+            { src: FEATURE_FAST, text: "Vendez en quelques minutes" },
+          ].map((f) => (
             <View key={f.text} style={styles.featureRow}>
-              <View style={[styles.featureIconWrap, { backgroundColor: f.bg }]}>
-                <Feather name={f.icon} size={18} color={f.color} />
-              </View>
+              <Image
+                source={f.src}
+                style={styles.featureImage}
+                resizeMode="contain"
+              />
               <Text style={styles.featureText}>{f.text}</Text>
             </View>
           ))}
@@ -318,12 +309,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-  featureIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+  featureImage: {
+    width: 44,
+    height: 44,
   },
   featureText: {
     fontFamily: "Inter_500Medium",

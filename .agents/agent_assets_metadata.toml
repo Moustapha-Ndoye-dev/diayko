@@ -60,3 +60,21 @@ id = "5qDndGiFilC4pWgJIX1jj"
 uri = "file://artifacts/mobile/assets/images/promo3.png"
 type = "image"
 title = "vintage picks promo banner"
+
+[[generated]]
+id = "eICkYUkLUbiE9ubxp9sze"
+uri = "file://artifacts/mobile/assets/images/feature_bag.png"
+type = "image"
+title = "shopping bag icon"
+
+[[generated]]
+id = "rMBw3X9UiSVoeUBy-FG1W"
+uri = "file://artifacts/mobile/assets/images/feature_secure.png"
+type = "image"
+title = "secure payment icon"
+
+[[generated]]
+id = "P_YWN51fDTc_dInfRVDej"
+uri = "file://artifacts/mobile/assets/images/feature_fast.png"
+type = "image"
+title = "fast lightning icon"
