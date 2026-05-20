@@ -4,12 +4,12 @@ A second-hand fashion marketplace mobile app (Expo/React Native) backed by a RES
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080, served at `/api`)
-- `pnpm --filter @workspace/mobile run dev` — run the Expo mobile app
+- `pnpm dev:api` — run the API server (port 8080, served at `/api`)
+- `pnpm dev:mobile` — run the Expo mobile app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm db:push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/scripts run seed` — seed the database with sample data
 - Required env: `DATABASE_URL` — Postgres connection string (auto-provisioned on Replit)
 
@@ -25,13 +25,13 @@ A second-hand fashion marketplace mobile app (Expo/React Native) backed by a RES
 
 ## Where things live
 
-> **Raccourcis** : `client/` → `artifacts/mobile/` et `server/` → `artifacts/api-server/` (symlinks).
-> Travaille dans `client/` et `server/` au quotidien. Les artifacts/ doivent rester en place pour Replit.
+> **Raccourcis** : `client` pointe vers `apps/mobile` et `server` pointe vers `apps/api-server`.
+> Le code source vit maintenant dans `apps/` et `packages/`.
 
 ### Server — architecture en 3 couches
 
 ```
-server/src/
+apps/api-server/src/
 ├── routes/       ← thin : valider (Zod) → appeler service → répondre
 ├── services/     ← logique métier (créer commande, toggle like, vérifier participants…)
 ├── repos/        ← TOUTES les requêtes Drizzle (1 fichier par entité)
@@ -41,7 +41,7 @@ server/src/
 
 **Règle d'or** : `routes/` n'accèdent jamais directement à `db`. Toujours route → service → repo.
 
-- `artifacts/mobile/` — Expo mobile app
+- `apps/mobile/` — Expo mobile app
   - `app/(tabs)/` — Tab screens (Home, Search, Sell, Inbox, Profile)
   - `app/item/[id].tsx` — Item detail screen
   - `components/` — Reusable UI components (ItemCard, PromoCarousel, FeaturedSellers, etc.)
@@ -49,15 +49,15 @@ server/src/
   - `lib/api.ts` — Typed API client wrapping fetch
   - `data/mockData.ts` — Static data (categories, sizes, conditions, fallback sellers)
   - `constants/colors.ts` — Design tokens (primary teal: #09B1BA)
-- `artifacts/api-server/src/` — Express API
+- `apps/api-server/src/` — Express API
   - `routes/items.ts` — Items CRUD + like/view
   - `routes/users.ts` — User profiles
   - `routes/conversations.ts` — Messaging
   - `routes/categories.ts` — Category list
-- `lib/api-spec/openapi.yaml` — Source-of-truth API contract
-- `lib/api-zod/` — Generated Zod schemas (from codegen)
-- `lib/api-client-react/` — Generated React Query hooks (from codegen)
-- `lib/db/src/schema/` — Drizzle ORM table definitions
+- `packages/api-spec/openapi.yaml` — Source-of-truth API contract
+- `packages/api-zod/` — Generated Zod schemas (from codegen)
+- `packages/api-client-react/` — Generated React Query hooks (from codegen)
+- `packages/db/src/schema/` — Drizzle ORM table definitions
   - `users.ts`, `items.ts`, `conversations.ts`
 - `scripts/src/seed.ts` — DB seeder with sample users, items, and conversations
 
@@ -86,7 +86,7 @@ server/src/
 ## Gotchas
 
 - **Always run codegen after editing `openapi.yaml`**: `pnpm --filter @workspace/api-spec run codegen`
-- **After codegen, the `lib/api-zod/src/index.ts` is auto-fixed** by the codegen script (Orval generates a duplicate export conflict; the script patches it).
+- **After codegen, the `packages/api-zod/src/index.ts` is auto-fixed** by the codegen script (Orval generates a duplicate export conflict; the script patches it).
 - **`zod/v4` is not resolvable by esbuild** — use `import { z } from "zod"` in server routes.
 - **Do not run `pnpm dev` at root** — use workflow restart or `pnpm --filter` commands.
 - **`currentUser.id` is `"local-user"` locally** — the sell screen guards against passing this as a UUID to the API.

@@ -1,0 +1,9 @@
+Starting project at C:\dev\project\diayko\apps\mobile
+React Compiler enabled
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+undefined
+C:\dev\project\diayko\apps\mobile:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 4294967295: expo start --lan --port 8081 --clear

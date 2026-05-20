@@ -10,6 +10,19 @@ import {
   orderEventsTable,
 } from "@workspace/db/schema";
 
+type SeedInsertResult = PromiseLike<unknown> & {
+  returning(): Promise<any[]>;
+};
+
+type SeedDb = {
+  delete(table: unknown): PromiseLike<unknown>;
+  insert(table: unknown): {
+    values(values: unknown): SeedInsertResult;
+  };
+};
+
+const seedDb = db as unknown as SeedDb;
+
 const SOPHIE_ID = "seed-sophie";
 const EMMA_ID = "seed-emma";
 const LUCAS_ID = "seed-lucas";
@@ -19,17 +32,17 @@ const MATHIEU_ID = "seed-mathieu";
 async function seed() {
   console.log("🌱 Seeding database...");
 
-  await db.delete(orderEventsTable);
-  await db.delete(ordersTable);
-  await db.delete(likesTable);
-  await db.delete(messagesTable);
-  await db.delete(conversationsTable);
-  await db.delete(itemImagesTable);
-  await db.delete(itemsTable);
-  await db.delete(usersTable);
+  await seedDb.delete(orderEventsTable);
+  await seedDb.delete(ordersTable);
+  await seedDb.delete(likesTable);
+  await seedDb.delete(messagesTable);
+  await seedDb.delete(conversationsTable);
+  await seedDb.delete(itemImagesTable);
+  await seedDb.delete(itemsTable);
+  await seedDb.delete(usersTable);
   console.log("✓ Cleared existing data");
 
-  const [sophie, emma, lucas, chloe, mathieu, aminata, omar, fatou, ibra, ndeye] = await db
+  const [sophie, emma, lucas, chloe, mathieu, aminata, omar, fatou, ibra, ndeye] = await seedDb
     .insert(usersTable)
     .values([
       {
@@ -554,7 +567,7 @@ async function seed() {
     },
   ];
 
-  const insertedItems = await db
+  const insertedItems = await seedDb
     .insert(itemsTable)
     .values(
       itemDefs.map(({ images: _images, ...item }) => item),
@@ -568,7 +581,7 @@ async function seed() {
     const urls = itemDefs[i]!.images;
     return urls.map((url, position) => ({ itemId: item.id, url, position }));
   });
-  await db.insert(itemImagesTable).values(imageRows);
+  await seedDb.insert(itemImagesTable).values(imageRows);
   console.log(`✓ Assigned ${imageRows.length} images to items`);
 
   // Likes for Sophie
@@ -579,7 +592,7 @@ async function seed() {
     insertedItems[13]!, // sac bogolan
     insertedItems[19]!, // montre
   ];
-  await db.insert(likesTable).values(
+  await seedDb.insert(likesTable).values(
     likeTargets.map((item) => ({ userId: sophie.id, itemId: item.id })),
   );
   console.log("✓ Seeded 5 favorites for Sophie");
@@ -621,7 +634,7 @@ async function seed() {
   ];
 
   for (const [i, def] of orderDefs.entries()) {
-    const [order] = await db
+    const [order] = await seedDb
       .insert(ordersTable)
       .values({
         buyerId: sophie.id,
@@ -636,7 +649,7 @@ async function seed() {
       })
       .returning();
     if (!order) continue;
-    await db.insert(orderEventsTable).values(
+    await seedDb.insert(orderEventsTable).values(
       STEPS.map((label, position) => ({
         orderId: order.id,
         label,
@@ -683,7 +696,7 @@ async function seed() {
   ];
 
   for (const def of convDefs) {
-    const [conv] = await db
+    const [conv] = await seedDb
       .insert(conversationsTable)
       .values({
         buyerId: def.buyer.id,
@@ -695,7 +708,7 @@ async function seed() {
       })
       .returning();
     if (!conv) continue;
-    await db.insert(messagesTable).values(
+    await seedDb.insert(messagesTable).values(
       def.messages.map((m) => ({
         conversationId: conv.id,
         senderId: m.sender.id,

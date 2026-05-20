@@ -1,0 +1,4 @@
+[02:37:20.177] [32mINFO[39m (39120): [36mServer listening[39m
+    [35mport[39m: 8080
+[02:37:20.178] [32mINFO[39m (39120): [36mrate_limits cleanup job scheduled[39m
+    [35mintervalMs[39m: 3600000

@@ -1,0 +1,14 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.watcherExclude": {
+    "**/artifacts/**": true,
+    "**/lib/db/**": true,
+    "**/lib/README.md": true
+  },
+  "search.exclude": {
+    "**/artifacts": true,
+    "**/lib/db": true
+  },
+  "sonarlint.analysisExcludesStandalone": "artifacts/**, lib/**"
+}

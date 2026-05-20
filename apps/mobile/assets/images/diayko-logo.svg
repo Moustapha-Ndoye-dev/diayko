@@ -1,0 +1,75 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Warm sunset gradient inspired by Senegalese colours (green, gold, warm sky) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F3D2E"/>
+      <stop offset="55%" stop-color="#0A6B55"/>
+      <stop offset="100%" stop-color="#09B1BA"/>
+    </linearGradient>
+    <!-- Gold gradient for the D letterform -->
+    <linearGradient id="dGrad" x1="0%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#F7941D"/>
+    </linearGradient>
+    <!-- Clip for rounded square icon shape -->
+    <clipPath id="iconClip">
+      <rect width="1024" height="1024" rx="230" ry="230"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bgGrad)"/>
+
+  <!-- Subtle decorative circles (African geometric motif) -->
+  <circle cx="820" cy="204" r="180" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+  <circle cx="820" cy="204" r="120" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+  <circle cx="200" cy="820" r="200" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+
+  <!-- ── Main D letterform ───────────────────────────────────────────────── -->
+  <!-- The D is drawn as a custom path: bold vertical stroke + wide right arc -->
+  <path
+    d="
+      M 310 230
+      L 310 794
+      L 460 794
+      C 680 794 800 680 800 512
+      C 800 344 680 230 460 230
+      Z
+      M 400 320
+      L 455 320
+      C 618 320 706 402 706 512
+      C 706 622 618 704 455 704
+      L 400 704
+      Z
+    "
+    fill="url(#dGrad)"
+  />
+
+  <!-- ── Price tag hanging from the top-right of the D ─────────────────── -->
+  <!-- Tag body -->
+  <rect x="716" y="198" width="84" height="116" rx="14" fill="#F7941D"/>
+  <!-- Tag highlight -->
+  <rect x="716" y="198" width="84" height="52" rx="14" fill="#FFB347"/>
+  <!-- Tag hole (string attachment point) -->
+  <circle cx="758" cy="196" r="14" fill="#0A6B55"/>
+  <circle cx="758" cy="196" r="8" fill="#0F3D2E"/>
+  <!-- Tag price lines -->
+  <rect x="733" y="264" width="50" height="8" rx="4" fill="rgba(255,255,255,0.8)"/>
+  <rect x="733" y="280" width="36" height="6" rx="3" fill="rgba(255,255,255,0.5)"/>
+  <rect x="733" y="292" width="42" height="6" rx="3" fill="rgba(255,255,255,0.5)"/>
+
+  <!-- ── Wordmark "diayko" below the D ──────────────────────────────────── -->
+  <text
+    x="512"
+    y="900"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="96"
+    font-weight="bold"
+    letter-spacing="14"
+    fill="rgba(255,255,255,0.92)"
+  >diayko</text>
+
+  <!-- Thin gold line accent under wordmark -->
+  <rect x="340" y="926" width="344" height="4" rx="2" fill="#F7941D" opacity="0.7"/>
+</svg>

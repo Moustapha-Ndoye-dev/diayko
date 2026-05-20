@@ -3,10 +3,15 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "preinstall": "node ./scripts/preinstall-check.mjs",
+    "dev:api": "node ./scripts/with-env.mjs pnpm --filter @workspace/api-server run dev",
+    "dev:mobile": "pnpm --filter @workspace/mobile run dev",
+    "db:push": "pnpm run db:push:postgres",
+    "db:push:postgres": "node ./scripts/with-env.mjs pnpm --filter @workspace/db run push:postgres",
+    "db:push:neon": "pnpm run db:push:postgres",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"!./artifacts/mockup-sandbox\" --filter \"./scripts\" --if-present run typecheck",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"!./apps/mockup-sandbox\" --filter \"./scripts\" --if-present run typecheck",
     "lint": "eslint ."
   },
   "private": true,
