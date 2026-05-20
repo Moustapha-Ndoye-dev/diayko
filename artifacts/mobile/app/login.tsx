@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -66,13 +65,10 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
     keyboardRoot: {
       flex: 1,
     },
-    scroll: {
-      flex: 1,
-    },
-    scrollContent: {
-      flexGrow: 1,
+    screen: {
       paddingBottom: bottomPad,
       backgroundColor: colors.background,
+      flex: 1,
     },
     hero: {
       height: heroHeight,
@@ -93,7 +89,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       zIndex: 4,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: "flex-start",
     },
     backButton: {
       width: 42,
@@ -115,41 +111,13 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.28)",
     },
-    localePill: {
-      height: 42,
-      borderRadius: 21,
-      paddingHorizontal: 12,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      backgroundColor: "rgba(255,255,255,0.18)",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.28)",
-    },
-    flag: {
-      width: 26,
-      height: 18,
-      borderRadius: 4,
-      overflow: "hidden",
-      flexDirection: "row",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.35)",
-    },
-    flagStripe: {
-      flex: 1,
-    },
-    localeText: {
-      fontFamily: "Inter_700Bold",
-      fontSize: 13,
-      color: "#FFFFFF",
-    },
     heroCopy: {
       position: "absolute",
       left: 24,
       right: 24,
-      bottom: 56,
+      bottom: 48,
       zIndex: 3,
-      gap: 12,
+      gap: 10,
     },
     eyebrow: {
       alignSelf: "flex-start",
@@ -167,15 +135,16 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
     heroTitle: {
       maxWidth: 330,
       fontFamily: "Inter_700Bold",
-      fontSize: 40,
-      lineHeight: 45,
+      fontSize: 36,
+      lineHeight: 40,
       color: "#FFFFFF",
       letterSpacing: -0.4,
     },
     sheetWrap: {
-      marginTop: -36,
+      marginTop: -34,
       paddingHorizontal: 16,
       zIndex: 5,
+      flexShrink: 1,
     },
     sheet: {
       alignSelf: "center",
@@ -184,8 +153,8 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       borderRadius: 28,
       backgroundColor: colors.card,
       paddingHorizontal: 18,
-      paddingTop: 20,
-      paddingBottom: 18,
+      paddingTop: 16,
+      paddingBottom: 16,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(26,30,26,0.08)",
       ...Platform.select({
@@ -219,7 +188,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       alignSelf: "center",
       maxWidth: 300,
       marginTop: 7,
-      marginBottom: 18,
+      marginBottom: 14,
       fontFamily: "Inter_400Regular",
       fontSize: 14,
       lineHeight: 21,
@@ -231,7 +200,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       borderRadius: 16,
       backgroundColor: colors.secondary,
       padding: 4,
-      marginBottom: 18,
+      marginBottom: 14,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
     },
@@ -255,13 +224,6 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
     modeTextActive: {
       color: colors.primary,
     },
-    namesRow: {
-      flexDirection: "row",
-      gap: 10,
-    },
-    namesCol: {
-      flex: 1,
-    },
     fieldLabel: {
       marginLeft: 2,
       marginBottom: 7,
@@ -278,7 +240,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 14,
-      marginBottom: 14,
+      marginBottom: 12,
       gap: 10,
     },
     inputBoxFocused: {
@@ -303,7 +265,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       justifyContent: "center",
     },
     feedback: {
-      marginBottom: 14,
+      marginBottom: 12,
       borderRadius: 15,
       paddingHorizontal: 13,
       paddingVertical: 11,
@@ -353,9 +315,9 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
     },
     mutedAction: {
       alignSelf: "center",
-      marginTop: 16,
+      marginTop: 12,
       paddingHorizontal: 12,
-      paddingVertical: 8,
+      paddingVertical: 6,
     },
     mutedActionText: {
       fontFamily: "Inter_600SemiBold",
@@ -388,7 +350,7 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
       alignSelf: "center",
       maxWidth: 360,
       paddingHorizontal: 28,
-      marginTop: 14,
+      marginTop: 10,
       fontFamily: "Inter_400Regular",
       fontSize: 12,
       lineHeight: 18,
@@ -419,17 +381,6 @@ function loginScreenStyles(colors: Palette, topPad: number, bottomPad: number) {
 
 type Styles = ReturnType<typeof loginScreenStyles>;
 
-function SenegalFlag(props: Readonly<{ styles: Styles }>) {
-  const { styles } = props;
-  return (
-    <View style={styles.flag}>
-      <View style={[styles.flagStripe, { backgroundColor: "#00853F" }]} />
-      <View style={[styles.flagStripe, { backgroundColor: "#F5C518" }]} />
-      <View style={[styles.flagStripe, { backgroundColor: "#E31B23" }]} />
-    </View>
-  );
-}
-
 function LoginTopBar(props: Readonly<{ router: Router; styles: Styles }>) {
   const { router, styles } = props;
   const canGoBack = router.canGoBack();
@@ -451,11 +402,6 @@ function LoginTopBar(props: Readonly<{ router: Router; styles: Styles }>) {
           <DiaykoLogo size={30} variant="full" wordmarkColor="#FFFFFF" />
         </View>
       )}
-
-      <View style={styles.localePill}>
-        <SenegalFlag styles={styles} />
-        <Text style={styles.localeText}>FR</Text>
-      </View>
     </View>
   );
 }
@@ -541,8 +487,6 @@ export default function LoginScreen() {
   const [mode, setMode] = React.useState<AuthMode>("login");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [feedback, setFeedback] = React.useState<string | null>(null);
@@ -586,8 +530,6 @@ export default function LoginScreen() {
         await signup({
           email: trimmedEmail,
           password,
-          firstName: firstName.trim() || undefined,
-          lastName: lastName.trim() || undefined,
         });
       } else {
         await login(trimmedEmail, password);
@@ -614,13 +556,7 @@ export default function LoginScreen() {
         style={styles.keyboardRoot}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
+        <View style={styles.screen}>
           <ImageBackground
             source={HERO_IMAGE}
             style={styles.hero}
@@ -673,39 +609,6 @@ export default function LoginScreen() {
                 <View style={styles.feedback} accessibilityLiveRegion="polite">
                   <Feather name="alert-circle" size={18} color={colors.destructive} />
                   <Text style={styles.feedbackText}>{feedback}</Text>
-                </View>
-              ) : null}
-
-              {isSignup ? (
-                <View style={styles.namesRow}>
-                  <View style={styles.namesCol}>
-                    <AuthField
-                      colors={colors}
-                      styles={styles}
-                      label="Prenom"
-                      icon="user"
-                      value={firstName}
-                      onChangeText={setFirstName}
-                      placeholder="Awa"
-                      autoCapitalize="words"
-                      textContentType="name"
-                      editable={!busy}
-                    />
-                  </View>
-                  <View style={styles.namesCol}>
-                    <AuthField
-                      colors={colors}
-                      styles={styles}
-                      label="Nom"
-                      icon="user"
-                      value={lastName}
-                      onChangeText={setLastName}
-                      placeholder="Diallo"
-                      autoCapitalize="words"
-                      textContentType="name"
-                      editable={!busy}
-                    />
-                  </View>
                 </View>
               ) : null}
 
@@ -805,7 +708,7 @@ export default function LoginScreen() {
             </Text>
             .
           </Text>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
